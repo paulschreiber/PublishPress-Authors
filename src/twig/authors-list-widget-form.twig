@@ -1,9 +1,20 @@
-{% extends "widget-form.twig" %} 
+{% extends "widget-form.twig" %}
 {% block other_options %}
-<p>
-    <input class="checkbox" id="{{ esc_attr( ids.show_empty ) }}" name="{{ esc_attr( names.show_empty ) }}" type="checkbox"
-        {% if values.show_empty %} checked {% endif %}
-    />
-    <label for="{{ esc_attr( ids.show_empty ) }}">{{ labels.show_empty }}</label>
-</p>
+    <p>
+        <input class="checkbox" id="{{ esc_attr( ids.show_empty ) }}" name="{{ esc_attr( names.show_empty ) }}"
+               type="checkbox"
+                {% if values.show_empty %} checked {% endif %}
+        />
+        <label for="{{ esc_attr( ids.show_empty ) }}">{{ labels.show_empty }}</label>
+    </p>
+    <p>
+        <label for="{{ esc_attr( ids.meta_key ) }}">{{ labels.meta_key }}</label>
+        <input type="text" id="{{ esc_attr( ids.meta_key ) }}" name="{{ esc_attr( names.meta_key ) }}"
+               value="{{ values.meta_key }}"/>
+    </p>
+    <p>
+        <label for="{{ esc_attr( ids.meta_value ) }}">{{ labels.meta_value }}</label>
+        <input type="text" id="{{ esc_attr( ids.meta_value ) }}" name="{{ esc_attr( names.meta_value ) }}"
+               value="{{ values.meta_value }}"/>
+    </p>
 {% endblock %}

@@ -76,36 +76,49 @@ class Authors_Widget extends WP_Widget
             array(
                 'title'      => $this->title,
                 'layout'     => $legacyPlugin->modules->multiple_authors->options->layout,
-                'show_empty' => true
+                'show_empty' => true,
+                'meta_key'   => '',
+                'meta_value' => '',
             )
         );
 
         $title     = strip_tags($instance['title']);
         $layout    = strip_tags($instance['layout']);
         $showEmpty = isset($instance['show_empty']) ? (bool)$instance['show_empty'] : false;
-        $context   = array(
+        $metaKey   = strip_tags($instance['meta_key']);;
+        $metaValue = strip_tags($instance['meta_value']);;
+
+        $context = array(
             'labels'  => array(
                 'title'      => esc_html__('Title', 'publishpress-authors'),
                 'layout'     => esc_html__('Layout', 'publishpress-authors'),
                 'show_empty' => esc_html__(
                     'Display All Authors (including those who have not written any posts)',
                     'publishpress-authors'
-                )
+                ),
+                'meta_key'   => esc_html('Meta Key', 'publishpress-authors'),
+                'meta_value' => esc_html('Meta Value', 'publishpress-authors'),
             ),
             'ids'     => array(
                 'title'      => $this->get_field_id('title'),
                 'layout'     => $this->get_field_id('layout'),
-                'show_empty' => $this->get_field_id('show_empty')
+                'show_empty' => $this->get_field_id('show_empty'),
+                'meta_key'   => $this->get_field_id('meta_key'),
+                'meta_value' => $this->get_field_id('meta_value'),
             ),
             'names'   => array(
                 'title'      => $this->get_field_name('title'),
                 'layout'     => $this->get_field_name('layout'),
-                'show_empty' => $this->get_field_name('show_empty')
+                'show_empty' => $this->get_field_name('show_empty'),
+                'meta_key'   => $this->get_field_name('meta_key'),
+                'meta_value' => $this->get_field_name('meta_value'),
             ),
             'values'  => array(
                 'title'      => $title,
                 'layout'     => $layout,
-                'show_empty' => $showEmpty
+                'show_empty' => $showEmpty,
+                'meta_key'   => $metaKey,
+                'meta_value' => $metaValue,
             ),
             'layouts' => apply_filters('pp_multiple_authors_author_layouts', array()),
         );
@@ -128,6 +141,8 @@ class Authors_Widget extends WP_Widget
         $instance['title']      = sanitize_text_field($new_instance['title']);
         $instance['layout']     = sanitize_text_field($new_instance['layout']);
         $instance['show_empty'] = isset($new_instance['show_empty']) ? (bool)$new_instance['show_empty'] : false;
+        $instance['meta_key']   = sanitize_text_field($new_instance['meta_key']);
+        $instance['meta_value'] = sanitize_text_field($new_instance['meta_value']);
         $layouts                = apply_filters('pp_multiple_authors_author_layouts', array());
 
         if (!array_key_exists($instance['layout'], $layouts)) {
@@ -190,11 +205,29 @@ class Authors_Widget extends WP_Widget
 
         $showEmpty = isset($instance['show_empty']) ? $instance['show_empty'] : false;
 
+        $queryArgs = [
+            'hide_empty' => !$showEmpty,
+        ];
+
+        if (isset($instance['meta_key']) && isset($instance['meta_value'])) {
+            $metaKey   = trim($instance['meta_key']);
+            $metaValue = trim($instance['meta_value']);
+
+            if (!empty($metaKey) && !empty($metaValue)) {
+                $queryArgs['meta_query'] = [
+                    [
+                        'key'   => $metaKey,
+                        'value' => $metaValue,
+                    ]
+                ];
+            }
+        }
+
         $args = [
             'show_title' => false,
             'css_class'  => $css_class,
             'title'      => $title,
-            'authors'    => multiple_authors_get_all_authors(array('hide_empty' => !$showEmpty)),
+            'authors'    => multiple_authors_get_all_authors($queryArgs),
             'target'     => $target,
             'item_class' => 'author url fn',
             'layout'     => $layout,
