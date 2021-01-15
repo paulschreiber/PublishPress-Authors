@@ -151,6 +151,8 @@ if (!class_exists('MA_Multiple_Authors')) {
                 add_action('admin_notices', [$this, 'permissionsSyncNotice']);
                 add_action('admin_notices', [$this, 'handle_maintenance_task_notice']);
 
+                add_filter('gettext', [$this, 'filter_get_text'], 101, 3);
+
                 // Menu
                 add_action('multiple_authors_admin_menu_page', [$this, 'action_admin_menu_page']);
                 add_action('multiple_authors_admin_submenu', [$this, 'action_admin_submenu'], 50);
@@ -178,8 +180,9 @@ if (!class_exists('MA_Multiple_Authors')) {
             add_filter('multiple_authors_validate_module_settings', [$this, 'validate_module_settings'], 10, 2);
             add_filter('publishpress_multiple_authors_settings_tabs', [$this, 'settings_tab']);
 
-            add_filter('gettext', [$this, 'filter_get_text'], 101, 3);
-            add_filter('body_class', [$this, 'filter_body_class']);
+            if (!is_admin()) {
+                add_filter('body_class', [$this, 'filter_body_class']);
+            }
 
             // Fix upload permissions for multiple authors.
             add_filter('map_meta_cap', [$this, 'filter_map_meta_cap'], 10, 4);
@@ -1008,7 +1011,15 @@ if (!class_exists('MA_Multiple_Authors')) {
          */
         public function filter_get_text($translation, $text, $domain)
         {
-            if (!Utils::is_valid_page()) {
+            global $pagenow;
+
+            if (!in_array($pagenow, ['edit-tags.php', 'term.php'])) {
+                return $translation;
+            }
+
+            $taxonomy = isset($_GET['taxonomy']) ? $_GET['taxonomy'] : null;
+
+            if ('author' !== $taxonomy) {
                 return $translation;
             }
 
