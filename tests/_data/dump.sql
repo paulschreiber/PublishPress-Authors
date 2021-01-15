@@ -511,7 +511,7 @@ LOCK TABLES `wp_users` WRITE;
 
 INSERT INTO `wp_users` (`ID`, `user_login`, `user_pass`, `user_nicename`, `user_email`, `user_url`, `user_registered`, `user_activation_key`, `user_status`, `display_name`)
 VALUES
-	(1,'admin','$P$BiHs2lVx75mgbZ2kBapRn49vUbDQKl0','admin','anderson@publishpress.com','','2020-04-20 19:10:05','',0,'admin');
+	(1,'admin','$P$B7Dcc/WpwJ7fx4mL5ENtbFMa7qu0vS1','admin','anderson@publishpress.com','','2020-04-20 19:10:05','',0,'admin');
 
 /*!40000 ALTER TABLE `wp_users` ENABLE KEYS */;
 UNLOCK TABLES;
