@@ -18,7 +18,7 @@ use MultipleAuthors\Classes\Objects\Author;
  *
  * @package MultipleAuthors\Classes
  */
-class Query
+class QueryAuthors
 {
     /**
      * Fix for author pages 404ing or not properly displaying on author pages

@@ -32,7 +32,7 @@ class feed_links_extraCest
         $hookToFixTheAuthorQuery = $wp_filter['wp_head'][1]['MultipleAuthors\Classes\Query::fix_query_pre_get_posts'];
         remove_all_actions('wp_head');
         // Restore the required hook.
-        add_action('wp_head', ['\\MultipleAuthors\\Classes\\Query', 'fix_query_pre_get_posts'], 1);
+        add_action('wp_head', ['\\MultipleAuthors\\Classes\\QueryAuthors', 'fix_query_pre_get_posts'], 1);
 
         // Add the hook with the call to the function we want to test.
         add_action(

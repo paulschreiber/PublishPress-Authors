@@ -73,7 +73,7 @@ class Plugin
         add_filter('get_authornumposts', [$this, 'filter_count_author_posts'], 10, 2);
 
         // Filter to allow coauthors to edit posts
-        add_filter('user_has_cap', [$this, 'allow_coauthors_edit_post'], 10, 4);
+        add_filter('user_has_cap', [$this, 'allow_coauthors_edit_view_post'], 10, 4);
 
         // Restricts WordPress from blowing away term order on bulk edit
         add_filter('wp_get_object_terms', [$this, 'filter_wp_get_object_terms'], 10, 4);
@@ -245,23 +245,23 @@ class Plugin
         // Query modifications for the author page
         add_action(
             'pre_get_posts',
-            ['MultipleAuthors\\Classes\\Query', 'fix_query_pre_get_posts']
+            ['MultipleAuthors\\Classes\\QueryAuthors', 'fix_query_pre_get_posts']
         );
         add_filter(
             'posts_where',
-            ['MultipleAuthors\\Classes\\Query', 'filter_posts_where'],
+            ['MultipleAuthors\\Classes\\QueryAuthors', 'filter_posts_where'],
             10,
             2
         );
         add_filter(
             'posts_join',
-            ['MultipleAuthors\\Classes\\Query', 'filter_posts_join'],
+            ['MultipleAuthors\\Classes\\QueryAuthors', 'filter_posts_join'],
             10,
             2
         );
         add_filter(
             'posts_groupby',
-            ['MultipleAuthors\\Classes\\Query', 'filter_posts_groupby'],
+            ['MultipleAuthors\\Classes\\QueryAuthors', 'filter_posts_groupby'],
             10,
             2
         );
@@ -273,26 +273,34 @@ class Plugin
         );
         add_action(
             'wp_head',
-            ['MultipleAuthors\\Classes\\Query', 'fix_query_pre_get_posts'],
+            ['MultipleAuthors\\Classes\\QueryAuthors', 'fix_query_pre_get_posts'],
             1
         );
 
         // Query modifications for the admin posts lists
         add_filter(
             'posts_where',
-            ['MultipleAuthors\\Classes\\Query', 'filter_posts_list_where'],
+            ['MultipleAuthors\\Classes\\QueryAuthors', 'filter_posts_list_where'],
             10,
             2
         );
         add_filter(
             'posts_join',
-            ['MultipleAuthors\\Classes\\Query', 'filter_posts_list_join'],
+            ['MultipleAuthors\\Classes\\QueryAuthors', 'filter_posts_list_join'],
             10,
             2
         );
         add_filter(
             'posts_groupby',
-            ['MultipleAuthors\\Classes\\Query', 'filter_posts_list_groupby'],
+            ['MultipleAuthors\\Classes\\QueryAuthors', 'filter_posts_list_groupby'],
+            10,
+            2
+        );
+
+        // Query modifications for the private posts
+        add_filter(
+            'posts_request',
+            ['MultipleAuthors\Classes\QueryPrivatePosts', 'filter_posts_request'],
             10,
             2
         );
@@ -1435,48 +1443,75 @@ class Plugin
     /**
      * Allows coauthors to edit the post they're coauthors of
      */
-    public function allow_coauthors_edit_post($allcaps, $caps, $args, $user)
+    public function allow_coauthors_edit_view_post($allCaps, $caps, $args, $user)
     {
-        $cap     = $args[0];
-        $post_id = isset($args[2]) ? $args[2] : 0;
-
-        $postType = empty($post_id) ? Util::getCurrentPostType() : Util::getPostPostType($post_id);
-        $obj      = get_post_type_object($postType);
-
-        if (!$obj || 'revision' == $obj->name) {
-            return $allcaps;
-        }
-
-        $caps_to_modify = [
-            $obj->cap->edit_post,
-            'edit_post', // Need to filter this too, unfortunately: http://core.trac.wordpress.org/ticket/22415
-            $obj->cap->edit_others_posts, // This as well: http://core.trac.wordpress.org/ticket/22417
-        ];
-        if (!in_array($cap, $caps_to_modify)) {
-            return $allcaps;
-        }
-
         if (!is_user_logged_in()) {
-            return $allcaps;
+            return $allCaps;
         }
 
-        $allowEdit = is_multiple_author_for_post($user->ID, $post_id);
+        $cap    = $args[0];
+        $postId = isset($args[2]) ? $args[2] : 0;
 
-        if ($allowEdit) {
-            $post_status = get_post_status($post_id);
+        if (empty($postId)) {
+            if (isset($_REQUEST['post_ID'])) {
+                // For the quick edit code, because the post id is not passed to the user_can filter
+                $postId = (int)$_REQUEST['post_ID'];
+            } elseif (isset($_REQUEST['post'])) {
+                // For the post edit page, with the block editor. The post id is not passed so we get it from the URL.
+                $postId = (int)$_REQUEST['post'];
+            }
+        }
 
-            if ('publish' == $post_status &&
-                (isset($obj->cap->edit_published_posts) && !empty($user->allcaps[$obj->cap->edit_published_posts]))) {
-                $allcaps[$obj->cap->edit_published_posts] = true;
-            } elseif ('private' == $post_status &&
-                (isset($obj->cap->edit_private_posts) && !empty($user->allcaps[$obj->cap->edit_private_posts]))) {
-                $allcaps[$obj->cap->edit_private_posts] = true;
+        $postType       = empty($postId) ? Util::getCurrentPostType() : Util::getPostPostType($postId);
+        $postTypeObject = get_post_type_object($postType);
+
+        if (!$postTypeObject || 'revision' === $postTypeObject->name) {
+            return $allCaps;
+        }
+
+        $capsToModify = [
+            $postTypeObject->cap->edit_post,
+            'edit_post', // Need to filter this too, unfortunately: http://core.trac.wordpress.org/ticket/22415
+            $postTypeObject->cap->edit_others_posts, // This as well: http://core.trac.wordpress.org/ticket/22417,
+            $postTypeObject->cap->read_private_posts,
+        ];
+
+        if (!in_array($cap, $capsToModify)) {
+            return $allCaps;
+        }
+
+
+        $isAuthorOfThePost = is_multiple_author_for_post($user->ID, $postId);
+
+        if ($isAuthorOfThePost) {
+            $postStatus = get_post_status($postId);
+
+            if (
+                'publish' == $postStatus &&
+                isset($postTypeObject->cap->edit_published_posts) &&
+                (
+                    !isset($user->allcaps[$postTypeObject->cap->edit_published_posts]) ||
+                    false !== $user->allcaps[$postTypeObject->cap->edit_published_posts]
+                )
+            ) {
+                $allCaps[$postTypeObject->cap->edit_published_posts] = true;
+            } elseif (
+                'private' == $postStatus &&
+                isset($postTypeObject->cap->edit_private_posts) &&
+                (
+                    !isset($user->allcaps[$postTypeObject->cap->edit_private_posts]) ||
+                    false !== $user->allcaps[$postTypeObject->cap->edit_private_posts]
+                )
+            ) {
+                $allCaps[$postTypeObject->cap->edit_private_posts] = true;
+                $allCaps[$postTypeObject->cap->read_private_posts] = true;
             }
 
-            $allcaps[$obj->cap->edit_others_posts] = true;
+            $allCaps[$postTypeObject->cap->edit_post] = true;
+            $allCaps[$postTypeObject->cap->edit_others_posts] = true;
         }
 
-        return $allcaps;
+        return $allCaps;
     }
 
     /**

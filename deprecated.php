@@ -39,7 +39,7 @@ class_alias(
 );
 class_alias(MultipleAuthors\Classes\Installer::class, PublishPress\Addon\Multiple_authors\Classes\Installer::class);
 class_alias(MultipleAuthors\Classes\Post_Editor::class, PublishPress\Addon\Multiple_authors\Classes\Post_Editor::class);
-class_alias(MultipleAuthors\Classes\Query::class, PublishPress\Addon\Multiple_authors\Classes\Query::class);
+class_alias(MultipleAuthors\Classes\QueryAuthors::class, PublishPress\Addon\Multiple_authors\Classes\Query::class);
 class_alias(MultipleAuthors\Classes\Utils::class, PublishPress\Addon\Multiple_authors\Classes\Utils::class);
 class_alias(
     MultipleAuthors\Classes\Objects\Author::class,
@@ -52,6 +52,11 @@ class_alias(
 class_alias(
     MultipleAuthors\Classes\Integrations\Theme::class,
     PublishPress\Addon\Multiple_authors\Classes\Integrations\Theme::class
+);
+
+class_alias(
+    MultipleAuthors\Classes\QueryAuthors::class,
+    '\\MultipleAuthors\\Classes\\Query'
 );
 
 if (!defined('PUBLISHPRESS_MULTIPLE_AUTHORS_VERSION')) {

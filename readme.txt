@@ -108,6 +108,10 @@ There are two ways to install the PublishPress Authors plugin:
 
 == Changelog ==
 
+= UNRELEASED =
+
+* Fixed: Fixed capabilities check allowing secondary authors to read and edit their private posts, #321;
+
 = [3.11.0] - UNRELEASED =
 
 * Added: Added Rest API support to list the post's authors, #311;
