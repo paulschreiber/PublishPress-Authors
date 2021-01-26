@@ -153,6 +153,8 @@ if (!class_exists('MA_Multiple_Authors')) {
 
                 add_filter('gettext', [$this, 'filter_get_text'], 101, 3);
 
+                add_filter('users_have_additional_content', [$this, 'checkUsersAreCoAuthorOnAnyPost'], 10, 2);
+
                 // Menu
                 add_action('multiple_authors_admin_menu_page', [$this, 'action_admin_menu_page']);
                 add_action('multiple_authors_admin_submenu', [$this, 'action_admin_submenu'], 50);
@@ -2484,6 +2486,35 @@ if (!class_exists('MA_Multiple_Authors')) {
         public function actionSetPostAuthors($postId, $authors)
         {
             Utils::set_post_authors($postId, $authors);
+        }
+
+        public function checkUsersAreCoAuthorOnAnyPost($hasContent, $userIds)
+        {
+            if (empty($userIds)) {
+                return $hasContent;
+            }
+
+            foreach ($userIds as $userId) {
+                $author = Author::get_by_user_id($userId);
+
+                if (false !== $author) {
+                    global $wpdb;
+
+                    $countPosts = (int)$wpdb->get_var(
+                            "SELECT COUNT(*) FROM {$wpdb->term_relationships} as tr 
+                                    LEFT JOIN {$wpdb->term_taxonomy} AS tt ON (tr.term_taxonomy_id = tt.term_taxonomy_id)
+                                    WHERE
+	                                tt.taxonomy = 'author'
+	                                AND tt.term_id = 35"
+                    );
+
+                    if ($countPosts > 0) {
+                        return true;
+                    }
+                }
+            }
+
+            return $hasContent;
         }
     }
 }
