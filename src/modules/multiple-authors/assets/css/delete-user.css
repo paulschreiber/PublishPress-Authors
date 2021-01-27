@@ -1,0 +1,8 @@
+body.users-php #updateusers fieldset li:nth-child(2)
+{
+    display: none;
+}
+
+body.users-php #updateusers li#delete_option_author_wrapper {
+    list-style: none;
+}

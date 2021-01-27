@@ -154,6 +154,7 @@ if (!class_exists('MA_Multiple_Authors')) {
                 add_filter('gettext', [$this, 'filter_get_text'], 101, 3);
 
                 add_filter('users_have_additional_content', [$this, 'checkUsersHaveContent'], 10, 2);
+                add_action('delete_user_form', [$this, 'deleteUserForm'], 10, 2);
 
                 // Menu
                 add_action('multiple_authors_admin_menu_page', [$this, 'action_admin_menu_page']);
@@ -1851,6 +1852,30 @@ if (!class_exists('MA_Multiple_Authors')) {
                     );
                 }
             }
+
+            $screen = get_current_screen();
+            if ('users' === $screen->id && isset($_GET['action']) && 'delete' === $_GET['action']) {
+                wp_enqueue_script(
+                    'publishpress-authors-delete-user',
+                    PP_AUTHORS_URL . 'src/modules/multiple-authors/assets/js/delete-user.js',
+                    ['jquery',],
+                    PP_AUTHORS_VERSION
+                );
+
+                wp_enqueue_style(
+                    'publishpress-authors-delete-user',
+                    PP_AUTHORS_URL . 'src/modules/multiple-authors/assets/css/delete-user.css',
+                    false,
+                    PP_AUTHORS_VERSION
+                );
+
+                wp_enqueue_style(
+                    'publishpress-select2',
+                    PP_AUTHORS_URL . 'src/assets/lib/select2/css/select2.min.css',
+                    false,
+                    PP_AUTHORS_VERSION
+                );
+            }
         }
 
         /**
@@ -2515,6 +2540,24 @@ if (!class_exists('MA_Multiple_Authors')) {
             }
 
             return $hasContent;
+        }
+
+        public function deleteUserForm($currentUser, $userIds)
+        {
+            ?>
+            <li id="delete_option_author_wrapper">
+                <?php wp_nonce_field('authors-search', 'publishpress_authors_search_nonce'); ?>
+                <label for="delete_option_author">
+                    <input type="radio" id="delete_option_author" name="delete_option" value="reassign_author" />
+                    <?php echo esc_html__('Attribute all content to:'); ?>&nbsp;
+                    <select id="reassign_author" name="reassign_author">
+                        <option value="" selected="selected">
+                            <?php esc_html_e('Select an author', 'publishpress-authors'); ?>
+                        </option>
+                    </select>
+                </label>
+            </li>
+            <?php
         }
     }
 }
