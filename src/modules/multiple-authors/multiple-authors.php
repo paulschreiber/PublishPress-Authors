@@ -153,7 +153,7 @@ if (!class_exists('MA_Multiple_Authors')) {
 
                 add_filter('gettext', [$this, 'filter_get_text'], 101, 3);
 
-                add_filter('users_have_additional_content', [$this, 'checkUsersAreCoAuthorOnAnyPost'], 10, 2);
+                add_filter('users_have_additional_content', [$this, 'checkUsersHaveContent'], 10, 2);
 
                 // Menu
                 add_action('multiple_authors_admin_menu_page', [$this, 'action_admin_menu_page']);
@@ -2488,7 +2488,7 @@ if (!class_exists('MA_Multiple_Authors')) {
             Utils::set_post_authors($postId, $authors);
         }
 
-        public function checkUsersAreCoAuthorOnAnyPost($hasContent, $userIds)
+        public function checkUsersHaveContent($hasContent, $userIds)
         {
             if (empty($userIds)) {
                 return $hasContent;
