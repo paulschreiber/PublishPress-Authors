@@ -30,7 +30,8 @@ class Admin_Ajax
         header('Content-Type: application/javascript');
 
         if (empty($_GET['nonce'])
-            || !wp_verify_nonce($_GET['nonce'], 'authors-search')) {
+            || !wp_verify_nonce(sanitize_key($_GET['nonce']), 'authors-search')) {
+
             exit;
         }
 
