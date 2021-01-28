@@ -9,7 +9,6 @@
  */
 
 use MultipleAuthors\Classes\Authors_Iterator;
-use MultipleAuthors\Classes\Legacy\Util;
 use MultipleAuthors\Classes\Objects\Author;
 
 if (!function_exists('get_multiple_authors')) {
@@ -87,7 +86,6 @@ if (!function_exists('get_multiple_authors')) {
 
                     wp_cache_set($postId, $terms, 'get_multiple_authors:terms');
                 }
-
             } else {
                 // Get the term related to the current author from the archive page.
                 $terms = [];

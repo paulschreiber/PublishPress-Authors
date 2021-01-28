@@ -9,6 +9,8 @@
 
 namespace MultipleAuthors\Classes\Objects;
 
+use WP_Post;
+
 /**
  * Representation of an individual author.
  * @property int $ID
@@ -40,7 +42,7 @@ class Post
 {
 
     /**
-     * @var \WP_Post
+     * @var WP_Post
      */
     private $postObject;
 
@@ -51,7 +53,7 @@ class Post
      */
     public function __construct($post)
     {
-        if ($post instanceof \WP_Post) {
+        if ($post instanceof WP_Post) {
             $this->postObject = $post;
         } else {
             $this->postObject = get_post((int)$post);

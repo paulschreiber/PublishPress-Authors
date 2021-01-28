@@ -23,7 +23,6 @@
 
 use MultipleAuthors\Classes\Content_Model;
 use MultipleAuthors\Classes\Legacy\Module;
-use MultipleAuthors\Classes\Utils;
 use MultipleAuthors\Factory;
 
 if (!class_exists('MA_Debug')) {
@@ -110,26 +109,29 @@ if (!class_exists('MA_Debug')) {
             $dataList = [];
 
             // The post ID.
-            $post = get_post();
+            $post                  = get_post();
             $dataList['$post->ID'] = $post->ID;
 
             // Query the post_author.
-            $postAuthor = $wpdb->get_var(
+            $postAuthor                     = $wpdb->get_var(
                 $wpdb->prepare("SELECT post_author FROM {$wpdb->posts} WHERE ID = %d", $post->ID)
             );
             $dataList['$post->post_author'] = $postAuthor;
 
             // get_multiple_authors function.
-            $resultGetMultipleAuthors = get_multiple_authors();
+            $resultGetMultipleAuthors           = get_multiple_authors();
             $dataList['get_multiple_authors()'] = $resultGetMultipleAuthors;
 
             // Get the post terms for "author".
-            $authorTerms = wp_get_post_terms($post->ID, 'author');
+            $authorTerms                     = wp_get_post_terms($post->ID, 'author');
             $dataList['Post terms [author]'] = $authorTerms;
 
             echo '<pre><ul>';
             foreach ($dataList as $key => $data) {
-                echo '<li style="border-bottom: 1px solid silver; padding: 5px;">' . $key . ' = ' . print_r($data, true) . '</li>';
+                echo '<li style="border-bottom: 1px solid silver; padding: 5px;">' . $key . ' = ' . print_r(
+                        $data,
+                        true
+                    ) . '</li>';
             }
             echo '</ul></pre>';
         }

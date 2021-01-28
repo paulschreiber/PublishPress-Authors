@@ -215,9 +215,19 @@ if (!class_exists('MA_Multiple_Authors')) {
                 2
             );
             add_filter('publishpress_calendar_default_author', [$this, 'publishpressCalendarDefaultAuthor'], 10, 2);
-            add_filter('publishpress_author_filter_selected_option', [$this, 'publishpressAuthorFilterSelectedOption'], 10, 2);
+            add_filter(
+                'publishpress_author_filter_selected_option',
+                [$this, 'publishpressAuthorFilterSelectedOption'],
+                10,
+                2
+            );
             add_filter('PP_Content_Overview_posts_query_args', [$this, 'publishpressPostQueryArgs']);
-            add_filter('publishpress_content_overview_author_column', [$this, 'publishpressContentOverviewAuthorColumn'], 10, 2);
+            add_filter(
+                'publishpress_content_overview_author_column',
+                [$this, 'publishpressContentOverviewAuthorColumn'],
+                10,
+                2
+            );
             add_filter('pp_calendar_posts_query_args', [$this, 'publishpressPostQueryArgs']);
 
             // Add compatibility with GeneratePress theme.
@@ -1767,10 +1777,14 @@ if (!class_exists('MA_Multiple_Authors')) {
                 );
 
                 if (!empty($_REQUEST['ppma_tab'])) {
-                    wp_localize_script('multiple-authors-settings', 'ppmaSettings', [
-                        'tab' => 'ppma-tab-' . sanitize_key($_REQUEST['ppma_tab']),
-                        'runScript' => !empty($_REQUEST['ppma_maint']) ? sanitize_key($_REQUEST['ppma_maint']) : '',
-                    ]);
+                    wp_localize_script(
+                        'multiple-authors-settings',
+                        'ppmaSettings',
+                        [
+                            'tab'       => 'ppma-tab-' . sanitize_key($_REQUEST['ppma_tab']),
+                            'runScript' => !empty($_REQUEST['ppma_maint']) ? sanitize_key($_REQUEST['ppma_maint']) : '',
+                        ]
+                    );
                 }
 
                 wp_enqueue_script(
@@ -2322,13 +2336,24 @@ if (!class_exists('MA_Multiple_Authors')) {
             global $pagenow;
 
             // Only request the script if also running a PublishPress Permissions version which supports posts query integration
-            if (!defined('PRESSPERMIT_VERSION') || version_compare(constant('PRESSPERMIT_VERSION'), '3.4-alpha', '<') || defined('PRESSPERMIT_DISABLE_AUTHORS_JOIN')) {
+            if (!defined('PRESSPERMIT_VERSION') || version_compare(
+                    constant('PRESSPERMIT_VERSION'),
+                    '3.4-alpha',
+                    '<'
+                ) || defined('PRESSPERMIT_DISABLE_AUTHORS_JOIN')) {
                 return;
             }
 
             // Display the notice on Authors and Permissions plugin screens
-            $is_pp_plugin_page = (isset($_GET['page']) && in_array($_GET['page'], ['ppma-modules-settings', 'presspermit-settings', 'presspermit-groups']))
-            || ('edit-tags.php' == $pagenow && !empty($_REQUEST['taxonomy']) && ('author' == $_REQUEST['taxonomy']));
+            $is_pp_plugin_page = (isset($_GET['page']) && in_array(
+                        $_GET['page'],
+                        [
+                            'ppma-modules-settings',
+                            'presspermit-settings',
+                            'presspermit-groups'
+                        ]
+                    ))
+                || ('edit-tags.php' == $pagenow && !empty($_REQUEST['taxonomy']) && ('author' == $_REQUEST['taxonomy']));
 
             $requirements = [
                 in_array($pagenow, ['plugins.php', 'edit.php', 'edit-tags.php']),
@@ -2366,18 +2391,25 @@ if (!class_exists('MA_Multiple_Authors')) {
             ?>
             <div class="updated">
                 <p>
-                    <?php _e('PublishPress Authors needs a database update for Permissions integration.', 'publishpress-authors'); ?>
-                    &nbsp;<a href="<?php echo admin_url('admin.php?page=ppma-modules-settings&ppma_tab=maintenance&ppma_maint=sync-user-login#publishpress-authors-sync-author-slug');?>"><?php _e(
+                    <?php _e(
+                        'PublishPress Authors needs a database update for Permissions integration.',
+                        'publishpress-authors'
+                    ); ?>
+                    &nbsp;<a href="<?php echo admin_url(
+                        'admin.php?page=ppma-modules-settings&ppma_tab=maintenance&ppma_maint=sync-user-login#publishpress-authors-sync-author-slug'
+                    ); ?>"><?php _e(
                             'Click to run the update now',
                             'publishpress-authors'
                         ); ?></a>
-                    <?php if (!$ignore_dismissal):?>
-                    &nbsp;|&nbsp;
-                    <a href="<?php echo add_query_arg(['action' => 'dismiss_permissions_sync_notice']); ?>"><?php _e(
-                            'Dismiss',
-                            'publishpress-authors'
-                        ); ?></a>
-                    <?php endif;?>
+                    <?php if (!$ignore_dismissal): ?>
+                        &nbsp;|&nbsp;
+                        <a href="<?php echo add_query_arg(
+                            ['action' => 'dismiss_permissions_sync_notice']
+                        ); ?>"><?php _e(
+                                'Dismiss',
+                                'publishpress-authors'
+                            ); ?></a>
+                    <?php endif; ?>
                 </p>
             </div>
             <?php
@@ -2461,7 +2493,9 @@ if (!class_exists('MA_Multiple_Authors')) {
         {
             if ($authorId < 0) {
                 $author = Author::get_by_term_id($authorId);
-                $option = '<option value="' . esc_attr($authorId) . '" selected="selected">' . esc_html($author->display_name) . '</option>';
+                $option = '<option value="' . esc_attr($authorId) . '" selected="selected">' . esc_html(
+                        $author->display_name
+                    ) . '</option>';
             }
 
             return $option;
@@ -2482,8 +2516,8 @@ if (!class_exists('MA_Multiple_Authors')) {
 
                 $args['tax_query'][] = [
                     'taxonomy' => 'author',
-                    'field' => 'id',
-                    'terms' => [$authorId],
+                    'field'    => 'id',
+                    'terms'    => [$authorId],
                 ];
             }
 
@@ -2498,8 +2532,7 @@ if (!class_exists('MA_Multiple_Authors')) {
                 $authors = get_multiple_authors($post->ID);
 
                 $authorNamesArray = [];
-                foreach ($authors as $author)
-                {
+                foreach ($authors as $author) {
                     $authorNamesArray[] = $author->display_name;
                 }
 
@@ -2527,14 +2560,14 @@ if (!class_exists('MA_Multiple_Authors')) {
                     global $wpdb;
 
                     $countPosts = (int)$wpdb->get_var(
-                            $wpdb->prepare(
+                        $wpdb->prepare(
                             "SELECT COUNT(*) FROM {$wpdb->term_relationships} as tr 
                                     LEFT JOIN {$wpdb->term_taxonomy} AS tt ON (tr.term_taxonomy_id = tt.term_taxonomy_id)
                                     WHERE
 	                                tt.taxonomy = 'author'
 	                                AND tt.term_id = %d",
-                                $author->term_id
-                            )
+                            $author->term_id
+                        )
                     );
 
                     if ($countPosts > 0) {
@@ -2548,14 +2581,14 @@ if (!class_exists('MA_Multiple_Authors')) {
 
         public function deleteUserForm($currentUser, $userIds)
         {
-            if (!(bool) apply_filters('users_have_additional_content', false, $userIds)) {
+            if (!(bool)apply_filters('users_have_additional_content', false, $userIds)) {
                 return;
             }
             ?>
             <li id="delete_option_author_wrapper">
                 <?php wp_nonce_field('authors-search', 'publishpress_authors_search_nonce'); ?>
                 <label for="delete_option_author">
-                    <input type="radio" id="delete_option_author" name="delete_option" value="reassign_author" />
+                    <input type="radio" id="delete_option_author" name="delete_option" value="reassign_author"/>
                     <?php echo esc_html__('Attribute all content to:'); ?>&nbsp;
                     <select id="reassign_author" name="reassign_author">
                         <option value="" selected="selected">
@@ -2621,16 +2654,16 @@ if (!class_exists('MA_Multiple_Authors')) {
                 $deletingAuthor = Author::get_by_user_id($id);
 
                 if (false !== $deletingAuthor) {
-                    $authorsPostIds = (array) $wpdb->get_col(
-                            $wpdb->prepare(
-                                    "SELECT object_id FROM {$wpdb->term_relationships} WHERE term_taxonomy_id = %d",
-                                    $deletingAuthor->term_id
-                            )
+                    $authorsPostIds = (array)$wpdb->get_col(
+                        $wpdb->prepare(
+                            "SELECT object_id FROM {$wpdb->term_relationships} WHERE term_taxonomy_id = %d",
+                            $deletingAuthor->term_id
+                        )
                     );
 
                     foreach ($authorsPostIds as $postId) {
                         $postAuthorList = get_multiple_authors($postId, false);
-                        $newAuthorList = [];
+                        $newAuthorList  = [];
 
                         foreach ($postAuthorList as $postAuthor) {
                             if ($postAuthor->term_id === $deletingAuthor->term_id) {

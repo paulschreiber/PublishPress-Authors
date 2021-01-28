@@ -36,7 +36,7 @@ class Query
             global $wp_query;
         }
 
-        if (isset($wp_query->query['post_type'])  && $wp_query->query['post_type'] === 'ppmacf_field') {
+        if (isset($wp_query->query['post_type']) && $wp_query->query['post_type'] === 'ppmacf_field') {
             return;
         }
 
@@ -141,7 +141,7 @@ class Query
                 $query->authors_having_terms .= ' ' . $wpdb->term_taxonomy . '.term_id = \'' . $term->term_id . '\' OR ';
             }
 
-                $terms_implode = rtrim($terms_implode, ' OR');
+            $terms_implode = rtrim($terms_implode, ' OR');
 
             $query->authors_having_terms = rtrim($query->authors_having_terms, ' OR');
 
@@ -244,7 +244,8 @@ class Query
             return $where;
         }
 
-        $terms_implode = '(' . $wpdb->term_taxonomy . '.taxonomy = "author" AND ' . $wpdb->term_taxonomy . '.term_id = \'' . $author->getTerm()->term_id . '\') OR ';
+        $terms_implode = '(' . $wpdb->term_taxonomy . '.taxonomy = "author" AND ' . $wpdb->term_taxonomy . '.term_id = \'' . $author->getTerm(
+            )->term_id . '\') OR ';
         $terms_implode = rtrim($terms_implode, ' OR');
 
         // post_author = 2 OR post_author IN (2).'/\b(?:' . $wpdb->posts . '\.)?post_author\s*(?:=|IN)\s*\(?(\d+)\)?/'

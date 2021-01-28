@@ -85,8 +85,10 @@ if (!class_exists('MA_UltimateMember')) {
 
         public function filterProfileMakePosts($args)
         {
-            $legacyPlugin = Factory::getLegacyPlugin();
-            $selectedPostTypes = array_values(Util::get_post_types_for_module($legacyPlugin->modules->multiple_authors));
+            $legacyPlugin      = Factory::getLegacyPlugin();
+            $selectedPostTypes = array_values(
+                Util::get_post_types_for_module($legacyPlugin->modules->multiple_authors)
+            );
 
             if (isset($args['author']) && in_array($args['post_type'], $selectedPostTypes)) {
                 if (isset($args['tax_query'])) {
@@ -99,8 +101,8 @@ if (!class_exists('MA_UltimateMember')) {
 
                 $args['tax_query'][] = [
                     'taxonomy' => 'author',
-                    'field' => 'id',
-                    'terms' => [$author->term_id],
+                    'field'    => 'id',
+                    'terms'    => [$author->term_id],
                 ];
             }
 

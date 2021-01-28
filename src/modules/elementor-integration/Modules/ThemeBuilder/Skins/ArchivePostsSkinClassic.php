@@ -32,15 +32,6 @@ class ArchivePostsSkinClassic extends PostsSkinClassic
 {
     use Posts_Archive_Skin_Base;
 
-    protected function _register_controls_actions()
-    {
-        add_action('elementor/element/archive-posts/section_layout/before_section_end', [$this, 'register_controls']);
-        add_action(
-            'elementor/element/archive-posts/section_layout/after_section_end',
-            [$this, 'register_style_sections']
-        );
-    }
-
     public function get_id()
     {
         return 'archive_classic_pp_authors';
@@ -52,7 +43,17 @@ class ArchivePostsSkinClassic extends PostsSkinClassic
         return 'elementor-posts--skin-classic';
     }
 
+    protected function _register_controls_actions()
+    {
+        add_action('elementor/element/archive-posts/section_layout/before_section_end', [$this, 'register_controls']);
+        add_action(
+            'elementor/element/archive-posts/section_layout/after_section_end',
+            [$this, 'register_style_sections']
+        );
+    }
+
     /* Remove `posts_per_page` control */
+
     protected function register_post_count_control()
     {
     }

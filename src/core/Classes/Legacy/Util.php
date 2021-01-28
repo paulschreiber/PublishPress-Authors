@@ -9,6 +9,8 @@
 
 namespace MultipleAuthors\Classes\Legacy;
 
+use WP_Post;
+
 class Util
 {
     /**
@@ -56,7 +58,7 @@ class Util
     }
 
     /**
-     * @param \WP_Post|int $postOrPostId
+     * @param WP_Post|int $postOrPostId
      *
      * @return string|false
      */
@@ -74,7 +76,7 @@ class Util
             $post = $postOrPostId;
         }
 
-        if (!$post instanceof \WP_Post) {
+        if (!$post instanceof WP_Post) {
             return false;
         }
 

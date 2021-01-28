@@ -95,7 +95,7 @@ if (!class_exists('MA_Divi_Integration')) {
          * @param string $name
          * @param array $settings
          * @param string $context
-         * @param integer $post_id
+         * @param int $post_id
          *
          * @return string
          * @copyright Based on the function et_builder_filter_resolve_default_dynamic_content found in the DIVI theme.

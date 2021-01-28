@@ -11,6 +11,7 @@ namespace MultipleAuthors\Classes\Objects;
 
 use MultipleAuthors\Classes\Author_Utils;
 use WP_Error;
+use WP_Term;
 use WP_User;
 
 /**
@@ -36,37 +37,31 @@ class Author
 {
 
     /**
+     * @var array
+     */
+    private static $authorsByIdCache = [];
+    /**
+     * @var array
+     */
+    private static $authorsBySlugCache = [];
+    /**
+     * @var array
+     */
+    private static $authorsByTermIdCache = [];
+    /**
+     * @var array
+     */
+    private static $authorsByEmailCache = [];
+    /**
      * ID for the correlated term.
      *
      * @var int
      */
     private $term_id;
-
     /**
-     * @var \WP_Term
+     * @var WP_Term
      */
     private $term;
-
-    /**
-     * @var array
-     */
-    private static $authorsByIdCache = [];
-
-    /**
-     * @var array
-     */
-    private static $authorsBySlugCache = [];
-
-    /**
-     * @var array
-     */
-    private static $authorsByTermIdCache = [];
-
-    /**
-     * @var array
-     */
-    private static $authorsByEmailCache = [];
-
     /**
      * @var array
      */
@@ -106,7 +101,7 @@ class Author
      */
     private function __construct($term)
     {
-        if ($term instanceof \WP_Term) {
+        if ($term instanceof WP_Term) {
             $this->term    = $term;
             $this->term_id = $term->term_id;
         } else {
@@ -114,15 +109,6 @@ class Author
         }
 
         $this->term_id = abs($this->term_id);
-    }
-
-    public function getTerm()
-    {
-        if (empty($this->term)) {
-            $this->term = get_term($this->term_id, 'author');
-        }
-
-        return $this->term;
     }
 
     /**
@@ -300,22 +286,6 @@ class Author
     }
 
     /**
-     * Get a author object based on its term id.
-     *
-     * @param int $term_id ID for the author term.
-     *
-     * @return Author|false
-     */
-    public static function get_by_term_id($term_id)
-    {
-        if (!isset(self::$authorsByTermIdCache[$term_id])) {
-            self::$authorsByTermIdCache[$term_id] = new Author($term_id);
-        }
-
-        return isset(self::$authorsByTermIdCache[$term_id]) ? self::$authorsByTermIdCache[$term_id] : false;
-    }
-
-    /**
      * Get a author object based on its term slug.
      *
      * @param string $slug Slug for the author term.
@@ -336,6 +306,51 @@ class Author
         return isset(self::$authorsBySlugCache[$slug]) ? self::$authorsBySlugCache[$slug] : false;
     }
 
+    /**
+     * Get an author searching it by the email address. This function can cause performance issues
+     * if called too many times on the same request.
+     *
+     * @param $emailAddress
+     *
+     * @return false|mixed|Author
+     */
+    public static function get_by_email($emailAddress)
+    {
+        if (!isset(self::$authorsByEmailCache[$emailAddress])) {
+            $authorTermId = Author_Utils::get_author_term_id_by_email($emailAddress);
+
+            if (!empty($authorTermId)) {
+                self::$authorsByEmailCache[$emailAddress] = self::get_by_term_id($authorTermId);
+            }
+        }
+
+        return isset(self::$authorsByEmailCache[$emailAddress]) ? self::$authorsByEmailCache[$emailAddress] : false;
+    }
+
+    /**
+     * Get a author object based on its term id.
+     *
+     * @param int $term_id ID for the author term.
+     *
+     * @return Author|false
+     */
+    public static function get_by_term_id($term_id)
+    {
+        if (!isset(self::$authorsByTermIdCache[$term_id])) {
+            self::$authorsByTermIdCache[$term_id] = new Author($term_id);
+        }
+
+        return isset(self::$authorsByTermIdCache[$term_id]) ? self::$authorsByTermIdCache[$term_id] : false;
+    }
+
+    public function getTerm()
+    {
+        if (empty($this->term)) {
+            $this->term = get_term($this->term_id, 'author');
+        }
+
+        return $this->term;
+    }
 
     /**
      * @param $name
@@ -490,25 +505,14 @@ class Author
     }
 
     /**
-     * Return the URL for the avatar image.
+     * Returns true if the author is a guest author. Guest authors are authors that are not
+     * mapped to a site user.
      *
-     * @param int $size
-     *
-     * @return string|array
+     * @return bool
      */
-    public function get_avatar_url($size = 96)
+    public function is_guest()
     {
-        if (!is_null($this->avatarUrl)) {
-            if ($this->has_custom_avatar()) {
-                $url = $this->get_custom_avatar_url($size);
-            } else {
-                $url = get_avatar_url($this->user_email, $size);
-            }
-
-            $this->avatarUrl = $url;
-        }
-
-        return $this->avatarUrl;
+        return empty($this->user_id);
     }
 
     /**
@@ -534,6 +538,46 @@ class Author
         }
 
         return $this->metaCache[$key];
+    }
+
+    /**
+     * Return the user object of an author mapped to a user.
+     *
+     * @return bool|WP_User
+     */
+    public function get_user_object()
+    {
+        if ($this->is_guest()) {
+            return false;
+        }
+
+        if (empty($this->userObject)) {
+            $this->userObject = get_user_by('ID', $this->user_id);
+        }
+
+        return !empty($this->userObject) ? $this->userObject : false;
+    }
+
+    /**
+     * Return the URL for the avatar image.
+     *
+     * @param int $size
+     *
+     * @return string|array
+     */
+    public function get_avatar_url($size = 96)
+    {
+        if (!is_null($this->avatarUrl)) {
+            if ($this->has_custom_avatar()) {
+                $url = $this->get_custom_avatar_url($size);
+            } else {
+                $url = get_avatar_url($this->user_email, $size);
+            }
+
+            $this->avatarUrl = $url;
+        }
+
+        return $this->avatarUrl;
     }
 
     /**
@@ -699,55 +743,5 @@ class Author
         }
 
         return $metaValue;
-    }
-
-    /**
-     * Return the user object of an author mapped to a user.
-     *
-     * @return bool|WP_User
-     */
-    public function get_user_object()
-    {
-        if ($this->is_guest()) {
-            return false;
-        }
-
-        if (empty($this->userObject)) {
-            $this->userObject = get_user_by('ID', $this->user_id);
-        }
-
-        return !empty($this->userObject) ? $this->userObject : false;
-    }
-
-    /**
-     * Returns true if the author is a guest author. Guest authors are authors that are not
-     * mapped to a site user.
-     *
-     * @return bool
-     */
-    public function is_guest()
-    {
-        return empty($this->user_id);
-    }
-
-    /**
-     * Get an author searching it by the email address. This function can cause performance issues
-     * if called too many times on the same request.
-     *
-     * @param $emailAddress
-     *
-     * @return false|mixed|Author
-     */
-    public static function get_by_email($emailAddress)
-    {
-        if (!isset(self::$authorsByEmailCache[$emailAddress])) {
-            $authorTermId = Author_Utils::get_author_term_id_by_email($emailAddress);
-
-            if (!empty($authorTermId)) {
-                self::$authorsByEmailCache[$emailAddress] = self::get_by_term_id($authorTermId);
-            }
-        }
-
-        return isset(self::$authorsByEmailCache[$emailAddress]) ? self::$authorsByEmailCache[$emailAddress] : false;
     }
 }

@@ -90,8 +90,8 @@ if (!class_exists('MA_REST_API')) {
                 'post',
                 'authors',
                 array(
-                    'get_callback'    => [$this, 'getPostAuthorsCallback'],
-                    'schema'          => array(
+                    'get_callback' => [$this, 'getPostAuthorsCallback'],
+                    'schema'       => array(
                         'description' => __('Authors.'),
                         'type'        => 'array'
                     ),
@@ -103,7 +103,9 @@ if (!class_exists('MA_REST_API')) {
         {
             $legacyPlugin = Factory::getLegacyPlugin();
 
-            $selectedPostTypes = array_values(Util::get_post_types_for_module($legacyPlugin->modules->multiple_authors));
+            $selectedPostTypes = array_values(
+                Util::get_post_types_for_module($legacyPlugin->modules->multiple_authors)
+            );
 
             $post = get_post($postData['ID']);
 

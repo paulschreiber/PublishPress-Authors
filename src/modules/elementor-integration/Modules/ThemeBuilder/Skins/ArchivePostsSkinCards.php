@@ -31,6 +31,17 @@ class ArchivePostsSkinCards extends PostsSkinCards
 {
     use Posts_Archive_Skin_Base;
 
+    public function get_id()
+    {
+        return 'archive_cards_pp_authors';
+    }
+
+    public function get_container_class()
+    {
+        // Use parent class and parent css.
+        return 'elementor-posts--skin-cards';
+    }
+
     protected function _register_controls_actions()
     {
         add_action('elementor/element/archive-posts/section_layout/before_section_end', [$this, 'register_controls']);
@@ -44,18 +55,8 @@ class ArchivePostsSkinCards extends PostsSkinCards
         );
     }
 
-    public function get_id()
-    {
-        return 'archive_cards_pp_authors';
-    }
-
-    public function get_container_class()
-    {
-        // Use parent class and parent css.
-        return 'elementor-posts--skin-cards';
-    }
-
     /* Remove `posts_per_page` control */
+
     protected function register_post_count_control()
     {
     }
