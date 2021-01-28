@@ -3,11 +3,12 @@
 use MultipleAuthors\Classes\Author_Utils;
 use MultipleAuthors\Classes\Objects\Author;
 use MultipleAuthors\Classes\Utils;
+use WpunitTester;
 
 class Author_UtilsCest
 {
     public function methodGet_author_term_id_by_emailShouldReturnTheAuthorWithTheGivenEmailWhenAuthorExists(
-        \WpunitTester $I
+        WpunitTester $I
     ) {
         $userID = $I->factory('a new user')->user->create(['role' => 'author']);
         $author = Author::create_from_user($userID);
@@ -20,7 +21,7 @@ class Author_UtilsCest
     }
 
     public function methodGet_author_term_id_by_emailShouldReturnTheGuestAuthorWithTheGivenEmailWhenAuthorExists(
-        \WpunitTester $I
+        WpunitTester $I
     ) {
         $authorSlug = sprintf('guest_author_%s', rand(1, PHP_INT_MAX));
         $author     = Author::create(
@@ -39,7 +40,7 @@ class Author_UtilsCest
         $I->assertEquals($author->term_id, $foundTermId);
     }
 
-    public function methodAuthor_has_custom_avatarShouldReturnFalseIfAuthorDontHaveAvatar(\WpunitTester $I)
+    public function methodAuthor_has_custom_avatarShouldReturnFalseIfAuthorDontHaveAvatar(WpunitTester $I)
     {
         $userID = $I->factory('a new user')->user->create(['role' => 'author']);
         $author = Author::create_from_user($userID);
@@ -49,7 +50,7 @@ class Author_UtilsCest
         $I->assertFalse($hasAvatar);
     }
 
-    public function methodAuthor_has_custom_avatarShouldReturnTrueIfAuthorHasAnAvatar(\WpunitTester $I)
+    public function methodAuthor_has_custom_avatarShouldReturnTrueIfAuthorHasAnAvatar(WpunitTester $I)
     {
         $userID = $I->factory('a new user')->user->create(['role' => 'author']);
         $author = Author::create_from_user($userID);
@@ -61,7 +62,7 @@ class Author_UtilsCest
         $I->assertTrue($hasAvatar);
     }
 
-    public function methodGet_author_metaReturnsValidSingleMeta(\WpunitTester $I)
+    public function methodGet_author_metaReturnsValidSingleMeta(WpunitTester $I)
     {
         $authorSlug = sprintf('guest_author_%s', rand(1, PHP_INT_MAX));
         $author     = Author::create(
@@ -81,7 +82,7 @@ class Author_UtilsCest
         $I->assertEquals($expected, $meta);
     }
 
-    public function methodGet_author_metaReturnsValidMultipleMeta(\WpunitTester $I)
+    public function methodGet_author_metaReturnsValidMultipleMeta(WpunitTester $I)
     {
         $authorSlug = sprintf('guest_author_%s', rand(1, PHP_INT_MAX));
         $author     = Author::create(
@@ -108,7 +109,7 @@ class Author_UtilsCest
         $I->assertEquals($expected, $meta);
     }
 
-    public function methodAuthor_is_guestShouldReturnTrueForGuestAuthor(\WpunitTester $I)
+    public function methodAuthor_is_guestShouldReturnTrueForGuestAuthor(WpunitTester $I)
     {
         $authorSlug = sprintf('guest_author_%s', rand(1, PHP_INT_MAX));
         $author     = Author::create(
@@ -122,7 +123,7 @@ class Author_UtilsCest
         $I->assertTrue($isGuest);
     }
 
-    public function methodAuthor_is_guestShouldReturnFalseForAuthorMappedToUser(\WpunitTester $I)
+    public function methodAuthor_is_guestShouldReturnFalseForAuthorMappedToUser(WpunitTester $I)
     {
         $userID = $I->factory('a new user')->user->create(['role' => 'author']);
         $author = Author::create_from_user($userID);
@@ -131,7 +132,7 @@ class Author_UtilsCest
         $I->assertFalse($isGuest);
     }
 
-    public function methodGet_avatar_urlShouldReturnTheAvatarUrlForGuestAuthor(\WpunitTester $I)
+    public function methodGet_avatar_urlShouldReturnTheAvatarUrlForGuestAuthor(WpunitTester $I)
     {
         $authorSlug = sprintf('guest_author_%s', rand(1, PHP_INT_MAX));
         $author     = Author::create(
@@ -159,7 +160,7 @@ class Author_UtilsCest
     }
 
     public function methodGet_avatar_urlShouldReturnTheCustomAvatarUrlAuthorMappedToUserWithCustomAvatar(
-        \WpunitTester $I
+        WpunitTester $I
     ) {
         $userID = $I->factory('a new user')->user->create(['role' => 'author']);
         $author = Author::create_from_user($userID);
@@ -178,7 +179,7 @@ class Author_UtilsCest
         );
     }
 
-    public function methodGet_avatar_urlShouldReturnFalseForAuthorMappedToUserWithNoCustomAvatar(\WpunitTester $I)
+    public function methodGet_avatar_urlShouldReturnFalseForAuthorMappedToUserWithNoCustomAvatar(WpunitTester $I)
     {
         $userID = $I->factory('a new user')->user->create(['role' => 'author']);
         $author = Author::create_from_user($userID);
@@ -188,16 +189,7 @@ class Author_UtilsCest
         $I->assertFalse($avatarUrl);
     }
 
-    protected function get_post_author($post_id)
-    {
-        global $wpdb;
-
-        return (int)$wpdb->get_var(
-            $wpdb->prepare("SELECT post_author FROM {$wpdb->posts} WHERE ID = %d", $post_id)
-        );
-    }
-
-    public function sync_post_author_columnShouldSetPost_authorAsCurrentUserWithArrayOfGuestAuthorsOnly(\WpunitTester $I
+    public function sync_post_author_columnShouldSetPost_authorAsCurrentUserWithArrayOfGuestAuthorsOnly(WpunitTester $I
     ) {
         $originalPostAuthorUserId = $I->factory('the original post author user')->user->create(['role' => 'author']);
 
@@ -239,8 +231,17 @@ class Author_UtilsCest
         $I->assertEquals(get_current_user_id(), $postAuthor);
     }
 
+    protected function get_post_author($post_id)
+    {
+        global $wpdb;
+
+        return (int)$wpdb->get_var(
+            $wpdb->prepare("SELECT post_author FROM {$wpdb->posts} WHERE ID = %d", $post_id)
+        );
+    }
+
     public function sync_post_author_columnShouldSetPost_authorUsingFirstMappedToUserAuthorButIgnoringGuestAuthorsWithArrayOfAuthorsInstances(
-        \WpunitTester $I
+        WpunitTester $I
     ) {
         $originalPostAuthorUserId = $I->factory('the original post author user')->user->create(['role' => 'author']);
 
@@ -281,7 +282,7 @@ class Author_UtilsCest
     }
 
     public function sync_post_author_columnShouldSetPost_authorUsingFirstAuthorWithArrayOfAuthorsInstances(
-        \WpunitTester $I
+        WpunitTester $I
     ) {
         $originalPostAuthorUserId = $I->factory('the original post author user')->user->create(['role' => 'author']);
 
@@ -302,7 +303,7 @@ class Author_UtilsCest
         $I->assertEquals($selectedAuthorUserId, $postAuthor);
     }
 
-    public function sync_post_author_columnShouldKeepPost_authorIntactIfAuthorListIsEmpty(\WpunitTester $I)
+    public function sync_post_author_columnShouldKeepPost_authorIntactIfAuthorListIsEmpty(WpunitTester $I)
     {
         $userId = $I->factory('a new user for the original post_author')->user->create(['role' => 'author']);
         $postId = $I->factory('a new post')->post->create(['post_type' => 'post', 'post_author' => $userId]);
@@ -325,7 +326,7 @@ class Author_UtilsCest
     }
 
     public function sync_post_author_columnShouldSetPost_authorAfterAuthorsOrderChangesWithArrayOfAuthorsInstances(
-        \WpunitTester $I
+        WpunitTester $I
     ) {
         $originalPostAuthorUserId = $I->factory('the original post author user')->user->create(['role' => 'author']);
         $postId                   = $I->factory('the post')->post->create(
@@ -358,7 +359,7 @@ class Author_UtilsCest
     }
 
     public function sync_post_author_columnShouldSetAuthorTermsAsCurrentPost_authorIfNoTermsAreFoundAndThereIsAUserAsAuthorInThePostWichHasAuthorTerm(
-        \WpunitTester $I
+        WpunitTester $I
     ) {
         $originalPostAuthorUserId = $I->factory('the original post author user')->user->create(['role' => 'author']);
 
@@ -407,7 +408,7 @@ class Author_UtilsCest
     }
 
     public function sync_post_author_columnShouldSetAuthorTermsAsCurrentPost_authorIfNoTermsAreFoundAndThereIsAUserAsAuthorInThePostWichHasNotAnAuthorTerm(
-        \WpunitTester $I
+        WpunitTester $I
     ) {
         $originalPostAuthorUserId = $I->factory('the original post author user')->user->create(['role' => 'author']);
 
@@ -448,7 +449,7 @@ class Author_UtilsCest
     }
 
     public function sync_post_author_columnShouldCreateAuthorTermForCurrentPost_authorIfNoTermsAreFoundAndThereIsAUserAsAuthorInThePostWichHasNotAnAuthorTerm(
-        \WpunitTester $I
+        WpunitTester $I
     ) {
         $originalPostAuthorUserId = $I->factory('the original post author user')->user->create(['role' => 'author']);
 
