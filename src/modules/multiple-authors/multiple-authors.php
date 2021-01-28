@@ -155,6 +155,7 @@ if (!class_exists('MA_Multiple_Authors')) {
 
                 add_filter('users_have_additional_content', [$this, 'checkUsersHaveContent'], 10, 2);
                 add_action('delete_user_form', [$this, 'deleteUserForm'], 10, 2);
+                add_action('current_screen', [$this, 'bulkDeleteUser']);
 
                 // Menu
                 add_action('multiple_authors_admin_menu_page', [$this, 'action_admin_menu_page']);
@@ -2526,11 +2527,14 @@ if (!class_exists('MA_Multiple_Authors')) {
                     global $wpdb;
 
                     $countPosts = (int)$wpdb->get_var(
+                            $wpdb->prepare(
                             "SELECT COUNT(*) FROM {$wpdb->term_relationships} as tr 
                                     LEFT JOIN {$wpdb->term_taxonomy} AS tt ON (tr.term_taxonomy_id = tt.term_taxonomy_id)
                                     WHERE
 	                                tt.taxonomy = 'author'
-	                                AND tt.term_id = 35"
+	                                AND tt.term_id = %d",
+                                $author->term_id
+                            )
                     );
 
                     if ($countPosts > 0) {
@@ -2544,6 +2548,9 @@ if (!class_exists('MA_Multiple_Authors')) {
 
         public function deleteUserForm($currentUser, $userIds)
         {
+            if (!(bool) apply_filters('users_have_additional_content', false, $userIds)) {
+                return;
+            }
             ?>
             <li id="delete_option_author_wrapper">
                 <?php wp_nonce_field('authors-search', 'publishpress_authors_search_nonce'); ?>
@@ -2558,6 +2565,110 @@ if (!class_exists('MA_Multiple_Authors')) {
                 </label>
             </li>
             <?php
+        }
+
+        public function bulkDeleteUser()
+        {
+            if (is_multisite() || !is_admin()) {
+                return;
+            }
+
+            if ('users' !== get_current_screen()->id || !isset($_GET['action']) || 'delete' !== $_GET['action']) {
+                return;
+            }
+
+            if (empty($_POST['users'])) {
+                return;
+            }
+
+            if (!isset($_POST['delete_option']) || 'reassign_author' !== $_POST['delete_option']) {
+                return;
+            }
+
+            if (!isset($_POST['reassign_author'])) {
+                return;
+            }
+
+            check_admin_referer('delete-users');
+
+            if (!current_user_can('delete_users')) {
+                wp_die(__('Sorry, you are not allowed to delete users.'), 403);
+            }
+
+            $newAuthorId = (int)$_POST['reassign_author'];
+
+            if (empty($newAuthorId)) {
+                wp_die(__('Sorry, invalid user.', 'publishpress-authors'), 403);
+            }
+
+            $userIds = array_map('intval', (array)$_POST['users']);
+
+            $update       = 'del';
+            $delete_count = 0;
+
+            foreach ($userIds as $id) {
+                if (!current_user_can('delete_user', $id)) {
+                    wp_die(__('Sorry, you are not allowed to delete that user.'), 403);
+                }
+
+                if ($id == get_current_user_id()) {
+                    $update = 'err_admin_del';
+                    continue;
+                }
+
+                global $wpdb;
+
+                $deletingAuthor = Author::get_by_user_id($id);
+
+                if (false !== $deletingAuthor) {
+                    $authorsPostIds = (array) $wpdb->get_col(
+                            $wpdb->prepare(
+                                    "SELECT object_id FROM {$wpdb->term_relationships} WHERE term_taxonomy_id = %d",
+                                    $deletingAuthor->term_id
+                            )
+                    );
+
+                    foreach ($authorsPostIds as $postId) {
+                        $postAuthorList = get_multiple_authors($postId, false);
+                        $newAuthorList = [];
+
+                        foreach ($postAuthorList as $postAuthor) {
+                            if ($postAuthor->term_id === $deletingAuthor->term_id) {
+                                $newAuthorList[] = Author::get_by_term_id($newAuthorId);
+                            } else {
+                                $newAuthorList[] = $postAuthor;
+                            }
+                        }
+
+                        Utils::set_post_authors($postId, $newAuthorList);
+                    }
+
+                    wp_delete_term($deletingAuthor->term_id, 'author');
+                }
+
+                wp_delete_user($id);
+
+                ++$delete_count;
+            }
+
+            if (isset($_POST['wp_http_referer'])) {
+                $redirect = remove_query_arg(
+                    array('wp_http_referer', 'updated', 'delete_count'),
+                    wp_unslash($_POST['wp_http_referer'])
+                );
+            } else {
+                $redirect = 'users.php';
+            }
+
+            $redirect = add_query_arg(
+                array(
+                    'delete_count' => $delete_count,
+                    'update'       => $update,
+                ),
+                $redirect
+            );
+            wp_redirect($redirect);
+            exit;
         }
     }
 }
