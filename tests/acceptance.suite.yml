@@ -23,7 +23,7 @@ modules:
             adminPath: '/wp-admin'
             capabilities:
                 chromeOptions:
-                    args: [ "--proxy-server='direct://'", "--proxy-bypass-list=*" ]
+                    args: [ "--headless", "--disable-gpu", "--proxy-server='direct://'", "--proxy-bypass-list=*" ]
             headers:
                 X_TEST_REQUEST: 1
                 X_WPBROWSER_REQUEST: 1
