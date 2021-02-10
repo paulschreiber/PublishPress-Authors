@@ -9,11 +9,11 @@ actor: AcceptanceTester
 modules:
     enabled:
         - \Helper\Acceptance
-        - WPBrowser
+        - WPWebDriver
         - Asserts
         - WPLoader
     config:
-        WPBrowser:
+        WPWebDriver:
             url: 'https://tests.local/'
             window_size: false
             port: 9515
@@ -22,7 +22,8 @@ modules:
             adminPassword: ''
             adminPath: '/wp-admin'
             capabilities:
-                "goog:chromeOptions":
+                chromeOptions:
+                    args: [ "--proxy-server='direct://'", "--proxy-bypass-list=*" ]
             headers:
                 X_TEST_REQUEST: 1
                 X_WPBROWSER_REQUEST: 1
