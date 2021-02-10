@@ -104,7 +104,7 @@ class EditPrivatePostCest
         $I->amOnAdminPage('/post.php?action=edit&post=' . $this->postId);
 
         $I->seeInTitle('Edit Post');
-        $I->seeElement('.edit-post-header');
+        $I->seeElementInDOM('body.block-editor-page');
     }
 
     public function tryToSeePrivatePostInPostListAsSecondaryAuthor(AcceptanceTester $I)
@@ -126,9 +126,7 @@ class EditPrivatePostCest
         $I->amOnAdminPage('/post.php?action=edit&post=' . $this->postId);
 
         $I->seeInTitle('Edit Post');
-
-        // Disabling this check for now because it fails only in the test, not in a real session on a browser
-        // $I->seeElement('.edit-post-header');
+        $I->seeElementInDOM('body.block-editor-page');
     }
 
     public function tryToEditPrivatePostAsGuestAndSeeLogInPage(AcceptanceTester $I)
