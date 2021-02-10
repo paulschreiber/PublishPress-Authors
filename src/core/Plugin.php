@@ -12,7 +12,7 @@ namespace MultipleAuthors;
 use MA_Multiple_Authors;
 use MultipleAuthors\Classes\Legacy\Util;
 use MultipleAuthors\Classes\Objects\Author;
-use MultipleAuthors\Classes\Query;
+use MultipleAuthors\Classes\QueryAuthors;
 use MultipleAuthors\Classes\Utils;
 use MultipleAuthors\Traits\Author_box;
 use WP_Post;
@@ -718,9 +718,9 @@ class Plugin
         if ('posts_count' === $orderBy) {
             global $wpdb;
 
-            $query->query_fields .= ', tt.count as posts_count';
-            $query->query_from .= " LEFT JOIN $wpdb->termmeta as tm ON ($wpdb->users.ID = tm.meta_value AND tm.meta_key = \"user_id\")";
-            $query->query_from .= " LEFT JOIN $wpdb->term_taxonomy as tt ON (tm.`term_id` = tt.term_id AND tt.taxonomy = \"author\")";
+            $query->query_fields  .= ', tt.count as posts_count';
+            $query->query_from    .= " LEFT JOIN $wpdb->termmeta as tm ON ($wpdb->users.ID = tm.meta_value AND tm.meta_key = \"user_id\")";
+            $query->query_from    .= " LEFT JOIN $wpdb->term_taxonomy as tt ON (tm.`term_id` = tt.term_id AND tt.taxonomy = \"author\")";
             $query->query_orderby = 'ORDER BY posts_count ' . $query->get('order');
         }
     }
@@ -1086,7 +1086,7 @@ class Plugin
             return;
         }
 
-        Query::fix_query_pre_get_posts($wp_query);
+        QueryAuthors::fix_query_pre_get_posts($wp_query);
 
         $wp_query->is_404 = false;
     }
@@ -1378,7 +1378,8 @@ class Plugin
         );
         wp_localize_script(
             'multiple-authors-js',
-            'bulkEditNonce', array(
+            'bulkEditNonce',
+            array(
                 'nonce' => wp_create_nonce('bulk-edit-nonce')
             )
         );
@@ -1507,7 +1508,7 @@ class Plugin
                 $allCaps[$postTypeObject->cap->read_private_posts] = true;
             }
 
-            $allCaps[$postTypeObject->cap->edit_post] = true;
+            $allCaps[$postTypeObject->cap->edit_post]         = true;
             $allCaps[$postTypeObject->cap->edit_others_posts] = true;
         }
 

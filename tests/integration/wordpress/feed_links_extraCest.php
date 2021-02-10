@@ -23,13 +23,13 @@ class feed_links_extraCest
         $wp_query->query_vars['author_name'] = $authorSlug;
 
         $I->assertArrayHasKey(
-            'MultipleAuthors\Classes\Query::fix_query_pre_get_posts',
+            'MultipleAuthors\Classes\QueryAuthors::fix_query_pre_get_posts',
             $wp_filter['wp_head'][1],
             'We need a call to fix_query_pre_get_posts in the wp_head hook with priority 1'
         );
 
         // Backup the required hook and do a clean up.
-        $hookToFixTheAuthorQuery = $wp_filter['wp_head'][1]['MultipleAuthors\Classes\Query::fix_query_pre_get_posts'];
+        $hookToFixTheAuthorQuery = $wp_filter['wp_head'][1]['MultipleAuthors\Classes\QueryAuthors::fix_query_pre_get_posts'];
         remove_all_actions('wp_head');
         // Restore the required hook.
         add_action('wp_head', ['\\MultipleAuthors\\Classes\\QueryAuthors', 'fix_query_pre_get_posts'], 1);
