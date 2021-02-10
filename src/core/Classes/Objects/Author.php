@@ -98,6 +98,11 @@ class Author
     private $avatarBySize = [];
 
     /**
+     * @var array
+     */
+    private $postCount = [];
+
+    /**
      * Instantiate a new author object
      *
      * Authors are always fetched by static fetchers.
@@ -667,6 +672,55 @@ class Author
         );
 
         return $avatar;
+    }
+
+    private function getPostCountForAllPostTypes()
+    {
+        if (!isset($this->postCount['all'])) {
+            global $wpdb;
+
+            $this->postCount['all'] = (int)$wpdb->get_var(
+                $wpdb->prepare(
+                    "SELECT count FROM {$wpdb->term_taxonomy} WHERE term_id = %d",
+                    $this->term_id
+                )
+            );
+        }
+
+        return $this->postCount['all'];
+    }
+
+    public function postCount($postType = 'all')
+    {
+        if (!isset($this->postCount[$postType])) {
+            if ('all' === $postType) {
+                return $this->getPostCountForAllPostTypes();
+            } else {
+                $exclude_states = get_post_stati(
+                    array(
+                        'show_in_admin_all_list' => false,
+                    )
+                );
+
+                $args = array(
+                    'post_type'           => $postType,
+                    'post_status__not_in' => $exclude_states,
+                    'tax_query'           => array(
+                        array(
+                            'taxonomy' => 'author',
+                            'field'    => 'term_id',
+                            'terms'    => $this->term_id,
+                        ),
+                    ),
+                );
+
+                $query = new \WP_Query($args);
+
+                $this->postCount[$postType] = (int)$query->post_count;
+            }
+        }
+
+        return $this->postCount[$postType];
     }
 
     /**

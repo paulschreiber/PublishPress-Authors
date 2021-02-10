@@ -1405,7 +1405,7 @@ class Plugin
      */
     public function filter_views($views)
     {
-        if (array_key_exists('mine', $views)) {
+        if (!array_key_exists('mine', $views)) {
             return $views;
         }
 
@@ -1414,14 +1414,19 @@ class Plugin
         $mine_args = [
             'author_name' => wp_get_current_user()->user_nicename,
         ];
-        if ('post' != Util::get_current_post_type()) {
-            $mine_args['post_type'] = Util::get_current_post_type();
+
+        if ('post' != Util::getCurrentPostType()) {
+            $mine_args['post_type'] = Util::getCurrentPostType();
         }
+
         if (!empty($_REQUEST['author_name']) && wp_get_current_user()->user_nicename == $_REQUEST['author_name']) {
             $class = ' class="current"';
         } else {
             $class = '';
         }
+
+        $author = Author::get_by_user_id(get_current_user_id());
+
         $views['mine'] = $view_mine = '<a' . $class . ' href="' . esc_url(
                 add_query_arg(
                     array_map(
@@ -1430,10 +1435,14 @@ class Plugin
                     ),
                     admin_url('edit.php')
                 )
-            ) . '">' . __(
-                'Mine',
-                'publishpress-authors'
-            ) . '</a>';
+            ) . '">' . sprintf(
+            /* translators: %s: Number of posts. */
+                _nx(
+                    'Mine <span class="count">(%s)</span>',
+                    'Mine <span class="count">(%s)</span>',
+                    $author->postCount(get_post_type()),
+                    'posts'
+                ), $author->postCount(get_post_type())) . '</a>';
 
         $views['all'] = str_replace($class, '', $all_view);
         $views        = array_reverse($views);
