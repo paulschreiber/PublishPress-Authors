@@ -21,6 +21,7 @@ use WP_Query;
  */
 class QueryPrivatePosts
 {
+    const REQUEST_QUERY_GROUP = 'QueryPrivatePosts:RequestQueryGroup';
     /**
      * Modify the WHERE clause on private posts query
      *
@@ -31,11 +32,11 @@ class QueryPrivatePosts
      */
     public static function filter_posts_request($request, $query)
     {
-        global $wpdb;
-
         if (!is_admin() || !is_user_logged_in() || !isset($query->query['post_type'])) {
             return $request;
         }
+
+        global $wpdb;
 
         $userId = get_current_user_id();
 
@@ -49,6 +50,11 @@ class QueryPrivatePosts
             return $request;
         }
 
+        $cacheKey = md5($request);
+        $cachedRequest = wp_cache_get($cacheKey, self::REQUEST_QUERY_GROUP);
+        if (false !== $cachedRequest) {
+            return $cachedRequest;
+        }
         // JOIN
         $join = " LEFT JOIN {$wpdb->term_relationships} ON ({$wpdb->posts}.ID = {$wpdb->term_relationships}.object_id )";
         $join .= " LEFT JOIN {$wpdb->term_taxonomy} ON ( {$wpdb->term_relationships}.term_taxonomy_id = {$wpdb->term_taxonomy}.term_taxonomy_id )";
@@ -77,6 +83,8 @@ class QueryPrivatePosts
         $groupBy = "{$wpdb->posts}.ID HAVING {$having}";
 
         $request = str_replace(' ORDER BY', " GROUP BY {$groupBy} ORDER BY", $request);
+
+        wp_cache_set($cacheKey, self::REQUEST_QUERY_GROUP);
 
         return $request;
     }
