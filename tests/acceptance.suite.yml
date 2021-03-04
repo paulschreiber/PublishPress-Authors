@@ -4,6 +4,7 @@ modules:
         - WPLoader
         - WPWebDriver
         - \Helper\Acceptance
+        - Asserts
     config:
         WPWebDriver:
             url: '%TEST_SITE_WP_URL%'
