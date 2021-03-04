@@ -154,8 +154,10 @@ if (!class_exists('MA_Multiple_Authors')) {
                 add_filter('gettext', [$this, 'filter_get_text'], 101, 3);
 
                 add_filter('users_have_additional_content', [$this, 'checkUsersHaveContent'], 10, 2);
-                add_action('delete_user_form', [$this, 'deleteUserForm'], 10, 2);
-                add_action('current_screen', [$this, 'bulkDeleteUser']);
+                add_action('delete_user_form', [$this, 'deleteUserFormForAdditionalContent'], 10, 2);
+                add_action('delete_user_form', [$this, 'deleteUserFormForNoContentButAuthor'], 10, 2);
+                add_action('current_screen', [$this, 'bulkDeleteUsers']);
+                add_action('delete_user', [$this, 'deleteUser'], 10, 3);
 
                 // Menu
                 add_action('multiple_authors_admin_menu_page', [$this, 'action_admin_menu_page']);
@@ -2564,8 +2566,8 @@ if (!class_exists('MA_Multiple_Authors')) {
                             "SELECT COUNT(*) FROM {$wpdb->term_relationships} as tr 
                                     LEFT JOIN {$wpdb->term_taxonomy} AS tt ON (tr.term_taxonomy_id = tt.term_taxonomy_id)
                                     WHERE
-	                                tt.taxonomy = 'author'
-	                                AND tt.term_id = %d",
+                                    tt.taxonomy = 'author'
+                                    AND tt.term_id = %d",
                             $author->term_id
                         )
                     );
@@ -2579,7 +2581,7 @@ if (!class_exists('MA_Multiple_Authors')) {
             return $hasContent;
         }
 
-        public function deleteUserForm($currentUser, $userIds)
+        public function deleteUserFormForAdditionalContent($currentUser, $userIds)
         {
             if (!(bool)apply_filters('users_have_additional_content', false, $userIds)) {
                 return;
@@ -2600,28 +2602,56 @@ if (!class_exists('MA_Multiple_Authors')) {
             <?php
         }
 
-        public function bulkDeleteUser()
+        public function deleteUserFormForNoContentButAuthor($currentUser, $userIds)
         {
-            if (is_multisite() || !is_admin()) {
+            if ((bool)apply_filters('users_have_additional_content', false, $userIds)) {
                 return;
             }
 
-            if ('users' !== get_current_screen()->id || !isset($_GET['action']) || 'delete' !== $_GET['action']) {
+            $hasAuthor = false;
+            foreach ($userIds as $userId) {
+                $author = Author::get_by_user_id($userId);
+
+                if (false !== $author) {
+                    $hasAuthor = true;
+                    break;
+                }
+            }
+
+            if (!$hasAuthor) {
                 return;
             }
 
-            if (empty($_POST['users'])) {
-                return;
-            }
+            ?>
+            <li class="none-list-style">
+                <?php echo esc_html(
+                    _n(
+                        'What should be done with the author term?',
+                        'At least one of those users is an author. What should be done with the author terms?',
+                        count($userIds),
+                        'publishpress-authors'
+                    )
+                ); ?>
+            </li>
 
-            if (!isset($_POST['delete_option']) || 'reassign_author' !== $_POST['delete_option']) {
-                return;
-            }
+            <li class="none-list-style">
+                <label for="delete_author_terms">
+                    <input type="radio" id="delete_author_terms" name="delete_option" value="delete_author_terms"/>
+                    <?php echo esc_html('Delete the author term'); ?>&nbsp;
+                </label>
+            </li>
+            <li class="none-list-style">
+                <label for="convert_to_guest_author">
+                    <input type="radio" id="convert_to_guest_author" name="delete_option"
+                           value="convert_to_guest_author"/>
+                    <?php echo esc_html__('Convert to guest author'); ?>&nbsp;
+                </label>
+            </li>
+            <?php
+        }
 
-            if (!isset($_POST['reassign_author'])) {
-                return;
-            }
-
+        private function reassignUserPosts()
+        {
             check_admin_referer('delete-users');
 
             if (!current_user_can('delete_users')) {
@@ -2679,7 +2709,8 @@ if (!class_exists('MA_Multiple_Authors')) {
                     wp_delete_term($deletingAuthor->term_id, 'author');
                 }
 
-                wp_delete_user($id);
+                // Reassign is set to 0 and not null to bypass the option to delete the user's posts.
+                wp_delete_user($id, 0);
 
                 ++$delete_count;
             }
@@ -2702,6 +2733,44 @@ if (!class_exists('MA_Multiple_Authors')) {
             );
             wp_redirect($redirect);
             exit;
+        }
+
+        public function bulkDeleteUsers()
+        {
+            if (is_multisite() || !is_admin()) {
+                return;
+            }
+
+            if ('users' !== get_current_screen()->id || !isset($_GET['action']) || 'delete' !== $_GET['action']) {
+                return;
+            }
+
+            if (empty($_POST['users']) || !isset($_POST['delete_option'])) {
+                return;
+            }
+
+            switch ($_POST['delete_option']) {
+                case 'reassign_author':
+                    $this->reassignUserPosts();
+                    break;
+
+                case 'delete_author_terms':
+                    foreach ($_POST['users'] as $userId) {
+                        $author = Author::get_by_user_id($userId);
+
+                        if (is_object($author) && !is_wp_error($author)) {
+                            wp_delete_term($author->getTerm()->term_id, 'author');
+                        }
+
+                        wp_delete_user($userId);
+                    }
+
+                    break;
+            }
+        }
+
+        public function deleteUser($userId, $reassign, $user)
+        {
         }
     }
 }

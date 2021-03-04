@@ -26,8 +26,5 @@ class AcceptanceTester extends \Codeception\Actor
     use Steps\Users;
     use Steps\Output;
     use Steps\Debug;
-
-    /**
-     * Define custom actions here
-     */
+    use Steps\Authors;
 }

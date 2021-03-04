@@ -26,6 +26,14 @@ trait Interaction
     }
 
     /**
+     * @When I select the option :option on :select
+     */
+    public function iSelectTheOption($option, $select)
+    {
+        $this->selectOption($select, $option);
+    }
+
+    /**
      * @When I click on the submit button
      */
     public function iClickOnSubmitButton()

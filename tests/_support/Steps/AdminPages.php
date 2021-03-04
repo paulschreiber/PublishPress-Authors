@@ -12,4 +12,12 @@ trait AdminPages
     {
         $this->amOnAdminPage('/users.php');
     }
+
+    /**
+     * @When I open the authors admin page
+     */
+    public function iOpenTheAuthorsAdminPage()
+    {
+        $this->amOnAdminPage('edit-tags.php?taxonomy=author');
+    }
 }

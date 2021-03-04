@@ -1,6 +1,4 @@
 jQuery(function ($) {
-    // $('form#updateusers #reassign_user').parent('li').after($('#delete_option_author_wrapper')).remove();
-
     $('#delete_option_author_wrapper select').ppma_select2({
         ajax: {
             url: ajaxurl,

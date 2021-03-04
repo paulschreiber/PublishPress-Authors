@@ -17,6 +17,8 @@ Feature: Users deletion
       | patrick    | author    |
       | jonatan    | author    |
       | erick      | author    |
+      | simon      | author    |
+      | joshua     | author    |
     And I open the users admin page
 
   Scenario: See correct form when selected one user which has no content and is not an author
@@ -61,16 +63,18 @@ Feature: Users deletion
     And I don't see the text "oprah"
 
   Scenario: See option to delete author or convert to guest author when selected user has no content but is an author
-    Given the user "patrick" is selected
+    Given author exists for user "patrick"
+    And the user "patrick" is selected
     When I click on the Delete row action for the user "patrick"
     Then I see the user ID for "patrick" in the deletion list
     And I see the text "patrick"
-    And I see the text "What should be done with the Author term?"
+    And I see the text "What should be done with the author term?"
     And I see the text "Delete the author term"
-    And I see the text "Convert to a guest author"
+    And I see the text "Convert to guest author"
 
   Scenario: See option to delete authors or convert to guest authors when selected users have no content but at least one is an author
-    Given the user "jonatan" is selected
+    Given author exists for user "erick"
+    And the user "jonatan" is selected
     And the user "erick" is selected
     When I select and apply the bulk action "delete"
     Then I see the user ID for "jonatan" in the deletion list
@@ -78,10 +82,24 @@ Feature: Users deletion
     And I see the text "jonatan"
     And I see the text "erick"
     And I see the text "At least one of those users is an author. What should be done with the author terms"
-    And I see the text "Delete the author terms"
-    And I see the text "Convert to guest authors"
+    And I see the text "Delete the author term"
+    And I see the text "Convert to guest author"
 
-  Scenario: User and author are deleted when selected the option to delete author for user which has no content but is an author
+  Scenario: User is deleted when selected the option to delete author for user which has no content but is an author
+    Given author exists for user "simon"
+    When I click on the Delete row action for the user "simon"
+    And I select the option "delete_author_terms" on "#delete_author_terms"
+    And I click on the submit button
+    Then I see the text "User deleted"
+    And I don't see the text "simon"
+
+  Scenario: Author is deleted when selected the option to delete author for user which has no content but is an author
+    Given author exists for user "joshua"
+    When I click on the Delete row action for the user "joshua"
+    And I select the option "delete_author_terms" on "#delete_author_terms"
+    And I click on the submit button
+    And I open the authors admin page
+    Then I don't see the text "joshua"
 
   Scenario: User but not author is deleted when selected the option to delete author for user which has no content but is an author
 
