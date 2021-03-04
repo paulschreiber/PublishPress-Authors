@@ -2766,6 +2766,20 @@ if (!class_exists('MA_Multiple_Authors')) {
                     }
 
                     break;
+
+                case 'convert_to_guest_author':
+                    foreach ($_POST['users'] as $userId) {
+                        $author = Author::get_by_user_id($userId);
+
+                        if (is_object($author) && !is_wp_error($author)) {
+                            delete_term_meta($author->getTerm()->term_id, 'user_id_' . $userId);
+                            delete_term_meta($author->getTerm()->term_id, 'user_id');
+                        }
+
+                        wp_delete_user($userId);
+                    }
+
+                    break;
             }
         }
 

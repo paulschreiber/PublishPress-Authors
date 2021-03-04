@@ -19,6 +19,10 @@ Feature: Users deletion
       | erick      | author    |
       | simon      | author    |
       | joshua     | author    |
+      | mathew     | author    |
+      | luck       | author    |
+      | soraya     | author    |
+      | paul       | author    |
     And I open the users admin page
 
   Scenario: See correct form when selected one user which has no content and is not an author
@@ -101,10 +105,26 @@ Feature: Users deletion
     And I open the authors admin page
     Then I don't see the text "joshua"
 
-  Scenario: User but not author is deleted when selected the option to delete author for user which has no content but is an author
+  Scenario: User is deleted when selected the option to convert to guest author for user which has no content but is an author
+    Given author exists for user "luck"
+    When I click on the Delete row action for the user "luck"
+    And I select the option "convert_to_guest_author" on "#convert_to_guest_author"
+    And I click on the submit button
+    Then I see the text "User deleted"
+    And I don't see the text "luck"
 
-  Scenario: Users and authors are deleted when selected the option to delete author for multiple users which have no content but at least one is an author
+  Scenario: Author is not deleted when selected the option to convert to guest author for user which has no content but is an author
+    Given author exists for user "soraya"
+    When I click on the Delete row action for the user "soraya"
+    And I select the option "convert_to_guest_author" on "#convert_to_guest_author"
+    And I click on the submit button
+    And I open the authors admin page
+    Then I see the text "soraya"
 
-  Scenario: Users but not authors are deleted when selected the option to delete authors for multiple users which have no content but at least one is an author
-
-
+  Scenario: Author is converted to guest author when selected the option to convert to guest author for user which has no content but is an author
+    Given author exists for user "paul"
+    When I click on the Delete row action for the user "paul"
+    And I select the option "convert_to_guest_author" on "#convert_to_guest_author"
+    And I click on the submit button
+    And I open the authors admin page
+    Then I see the text "paul — Guest Author"
