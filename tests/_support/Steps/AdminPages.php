@@ -20,4 +20,12 @@ trait AdminPages
     {
         $this->amOnAdminPage('edit-tags.php?taxonomy=author');
     }
+
+    /**
+     * @When I open the posts admin page
+     */
+    public function iOpenThePostsAdminPage()
+    {
+        $this->amOnAdminPage('edit.php');
+    }
 }

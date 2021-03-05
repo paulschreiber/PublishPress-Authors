@@ -274,15 +274,21 @@ class Author
         }
     }
 
+    public function make_guest_author()
+    {
+        self::convert_into_guest_author($this->term_id);
+    }
+
     /**
      * Remove the link between the author and user. Convert into a guest author.
      *
-     * @param $term_id
+     * @param $termId
      */
-    public static function convert_into_guest_author($term_id)
+    public static function convert_into_guest_author($termId)
     {
-        delete_term_meta($term_id, 'user_id');
-        delete_term_meta($term_id, 'user_id');
+        $userId = get_term_meta($termId, 'user_id', true);
+        delete_term_meta($termId, 'user_id');
+        delete_term_meta($termId, 'user_id_' . $userId);
     }
 
     /**

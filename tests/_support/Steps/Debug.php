@@ -12,4 +12,12 @@ trait Debug
     {
         $this->makeScreenshot($name);
     }
+
+    /**
+     * @Then I wait for :time seconds
+     */
+    public function waitForSeconds($time)
+    {
+        $this->wait((int)$time);
+    }
 }

@@ -697,4 +697,18 @@ class Utils
 
         return true;
     }
+
+    public static function deleteAuthorByUserId($userId)
+    {
+        $author = Author::get_by_user_id($userId);
+
+        if (is_object($author) && !is_wp_error($author)) {
+            wp_delete_term($author->getTerm()->term_id, 'author');
+        }
+    }
+
+    public static function deleteUser($userId)
+    {
+        wp_delete_user($userId);
+    }
 }

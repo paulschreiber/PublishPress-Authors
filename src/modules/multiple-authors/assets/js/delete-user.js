@@ -1,4 +1,6 @@
 jQuery(function ($) {
+    $('#updateusers #delete_option0').parents('fieldset').remove();
+
     $('#delete_option_author_wrapper select').ppma_select2({
         ajax: {
             url: ajaxurl,

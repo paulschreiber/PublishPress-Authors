@@ -27,4 +27,5 @@ class AcceptanceTester extends \Codeception\Actor
     use Steps\Output;
     use Steps\Debug;
     use Steps\Authors;
+    use Steps\Posts;
 }

@@ -2568,7 +2568,7 @@ if (!class_exists('MA_Multiple_Authors')) {
                                     WHERE
                                     tt.taxonomy = 'author'
                                     AND tt.term_id = %d",
-                            $author->term_id
+                            $author->getTerm()->term_id
                         )
                     );
 
@@ -2587,18 +2587,64 @@ if (!class_exists('MA_Multiple_Authors')) {
                 return;
             }
             ?>
-            <li id="delete_option_author_wrapper">
-                <?php wp_nonce_field('authors-search', 'publishpress_authors_search_nonce'); ?>
-                <label for="delete_option_author">
-                    <input type="radio" id="delete_option_author" name="delete_option" value="reassign_author"/>
-                    <?php echo esc_html__('Attribute all content to:'); ?>&nbsp;
-                    <select id="reassign_author" name="reassign_author">
-                        <option value="" selected="selected">
-                            <?php esc_html_e('Select an author', 'publishpress-authors'); ?>
-                        </option>
-                    </select>
-                </label>
-            </li>
+                <fieldset>
+                    <p>
+                        <?php echo esc_html(
+                            _n(
+                                'What should be done with content owned by this user?',
+                                'What should be done with content owned by these users?',
+                                count($userIds),
+                                'publishpress-authors'
+                            )
+                        ); ?>
+                    </p>
+                    <ul class="none-list-style">
+                        <li>
+                            <label for="delete_content_first_author">
+                                <input type="radio" id="delete_content_first_author" name="delete_option" value="delete_content_first_author"/>
+                                <?php echo esc_html(
+                                        _n(
+                                                'Delete all content which the user is first author',
+                                            'Delete all content which the users are first authors',
+                                            count($userIds),
+                                            'publishpress-authors'
+                                        )
+                                ); ?>&nbsp;
+                            </label>
+                        </li>
+                        <li>
+                            <label for="delete_all_content">
+                                <input type="radio" id="delete_all_content" name="delete_option" value="delete_all_content"/>
+                                <?php echo esc_html__('Delete all content'); ?>&nbsp;
+                            </label>
+                        </li>
+                        <li id="delete_option_author_wrapper">
+                            <?php wp_nonce_field('authors-search', 'publishpress_authors_search_nonce'); ?>
+                            <label for="delete_option_author">
+                                <input type="radio" id="delete_option_author" name="delete_option" value="reassign_author"/>
+                                <?php echo esc_html__('Attribute all content to:'); ?>&nbsp;
+                                <select id="reassign_author" name="reassign_author">
+                                    <option value="" selected="selected">
+                                        <?php esc_html_e('Select an author', 'publishpress-authors'); ?>
+                                    </option>
+                                </select>
+                            </label>
+                        </li>
+                        <li>
+                            <label for="delete_content_keep_guest_author">
+                                <input type="radio" id="delete_content_keep_guest_author" name="delete_option" value="delete_content_keep_guest_author"/>
+                                <?php echo esc_html(
+                                    _n(
+                                        'Keep the content but convert the user into guest author',
+                                        'Keep the content but convert the users into guest authors',
+                                        count($userIds),
+                                        'publishpress-authors'
+                                    )
+                                ); ?>&nbsp;
+                            </label>
+                        </li>
+                    </ul>
+                </fieldset>
             <?php
         }
 
@@ -2623,30 +2669,34 @@ if (!class_exists('MA_Multiple_Authors')) {
             }
 
             ?>
-            <li class="none-list-style">
-                <?php echo esc_html(
-                    _n(
-                        'What should be done with the author term?',
-                        'At least one of those users is an author. What should be done with the author terms?',
-                        count($userIds),
-                        'publishpress-authors'
-                    )
-                ); ?>
-            </li>
+                <fieldset>
+                    <p>
+                        <?php echo esc_html(
+                            _n(
+                                'What should be done with the author term?',
+                                'At least one of those users is an author. What should be done with the author terms?',
+                                count($userIds),
+                                'publishpress-authors'
+                            )
+                        ); ?>
+                    </p>
 
-            <li class="none-list-style">
-                <label for="delete_author_terms">
-                    <input type="radio" id="delete_author_terms" name="delete_option" value="delete_author_terms"/>
-                    <?php echo esc_html('Delete the author term'); ?>&nbsp;
-                </label>
-            </li>
-            <li class="none-list-style">
-                <label for="convert_to_guest_author">
-                    <input type="radio" id="convert_to_guest_author" name="delete_option"
-                           value="convert_to_guest_author"/>
-                    <?php echo esc_html__('Convert to guest author'); ?>&nbsp;
-                </label>
-            </li>
+                    <ul class="none-list-style">
+                        <li>
+                            <label for="delete_author_terms">
+                                <input type="radio" id="delete_author_terms" name="delete_option" value="delete_author_terms"/>
+                                <?php echo esc_html('Delete the author term'); ?>&nbsp;
+                            </label>
+                        </li>
+                        <li>
+                            <label for="convert_to_guest_author">
+                                <input type="radio" id="convert_to_guest_author" name="delete_option"
+                                       value="convert_to_guest_author"/>
+                                <?php echo esc_html__('Convert to guest author'); ?>&nbsp;
+                            </label>
+                        </li>
+                    </ul>
+                </fieldset>
             <?php
         }
 
@@ -2756,29 +2806,26 @@ if (!class_exists('MA_Multiple_Authors')) {
 
                 case 'delete_author_terms':
                     foreach ($_POST['users'] as $userId) {
-                        $author = Author::get_by_user_id($userId);
-
-                        if (is_object($author) && !is_wp_error($author)) {
-                            wp_delete_term($author->getTerm()->term_id, 'author');
-                        }
-
-                        wp_delete_user($userId);
+                        Utils::deleteAuthorByUserId($userId);
+                        Utils::deleteUser($userId);
                     }
-
                     break;
 
                 case 'convert_to_guest_author':
                     foreach ($_POST['users'] as $userId) {
                         $author = Author::get_by_user_id($userId);
+                        $author->make_guest_author();
 
-                        if (is_object($author) && !is_wp_error($author)) {
-                            delete_term_meta($author->getTerm()->term_id, 'user_id_' . $userId);
-                            delete_term_meta($author->getTerm()->term_id, 'user_id');
-                        }
-
-                        wp_delete_user($userId);
+                        Utils::deleteUser($userId);
                     }
+                    break;
 
+                case "delete_content_first_author":
+                    foreach ($_POST['users'] as $userId) {
+                        Utils::deleteAuthorByUserId($userId);
+                        // Deleting the user WP will delete the posts where the user is the first author by default.
+                        Utils::deleteUser($userId);
+                    }
                     break;
             }
         }
