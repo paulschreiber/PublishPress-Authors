@@ -55,4 +55,20 @@ trait Posts
 
         $this->seeElement("#post-{$post->ID} td.authors a[data-author-slug=\"{$userSlug}\"]");
     }
+
+    /**
+     * @Then I don't see a post with title :postSlug
+     */
+    public function iDonSeeAPostWithTitle($posTitle)
+    {
+        $this->dontSee($posTitle);
+    }
+
+    /**
+     * @Then I see a post with title :postSlug
+     */
+    public function iSeeAPostWithTitle($posTitle)
+    {
+        $this->see($posTitle);
+    }
 }

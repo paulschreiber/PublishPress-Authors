@@ -6,9 +6,9 @@ namespace Steps;
 trait AdminPages
 {
     /**
-     * @Given I open the users admin page
+     * @Given I am on the users admin page
      */
-    public function iOpenTheUsersAdminPage()
+    public function iAmOnUsersAdminPage()
     {
         $this->amOnAdminPage('/users.php');
     }

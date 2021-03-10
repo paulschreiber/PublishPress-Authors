@@ -55,6 +55,7 @@ trait Users
 
     /**
      * @Given the user :userLogin is selected
+     * @When I select the user :userLogin
      */
     public function theUserIsSelected($userLogin)
     {

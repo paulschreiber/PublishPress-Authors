@@ -2827,6 +2827,13 @@ if (!class_exists('MA_Multiple_Authors')) {
                         Utils::deleteUser($userId);
                     }
                     break;
+
+                case "delete_all_content":
+                    foreach ($_POST['users'] as $userId) {
+                        Utils::deleteAuthorByUserId($userId);
+                        Utils::deleteUser($userId);
+                    }
+                    break;
             }
         }
 
