@@ -42,7 +42,7 @@ class get_avatar_urlCest
 
     public function tryToGetTheAvatarURLForAGuestAuthor(\WpunitTester $I)
     {
-        $author = $I->createGuestAuthor();
+        $author = $I->haveGuestAuthors(1)[0];
 
         $attachmentId = $I->factory('a new attachment for the avatar image')->attachment->create_upload_object(
             realpath(TESTS_ROOT_PATH . '/_data/avatar1.png')

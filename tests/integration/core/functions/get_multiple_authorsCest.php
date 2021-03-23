@@ -1,4 +1,4 @@
-<?php namespace core\Classes\Objects;
+<?php namespace core\functions;
 
 use Codeception\Example;
 use MultipleAuthors\Classes\Objects\Author;

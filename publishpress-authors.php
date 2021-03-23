@@ -80,20 +80,22 @@ if (!defined('PP_AUTHORS_LOADED')) {
             $comment   = get_comment($comment_id);
             $post      = get_post($comment->comment_post_ID);
             $coauthors = get_multiple_authors($post->ID);
+
             foreach ($coauthors as $author) {
                 // The comment was left by the co-author
                 if ($comment->user_id == $author->ID) {
-                    return false;
+                    continue;
                 }
 
                 // The co-author moderated a comment on his own post
                 if ($author->ID == get_current_user_id()) {
-                    return false;
+                    continue;
                 }
 
                 // If there's no email to send the comment to
+                var_dump($author->user_email);
                 if ('' == $author->user_email) {
-                    return false;
+                    continue;
                 }
 
                 $comment_author_domain = @gethostbyaddr($comment->comment_author_IP);
