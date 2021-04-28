@@ -28,6 +28,21 @@ use WP_Role;
 
 class Installer
 {
+    private static function shouldRunAutomaticDataMigration()
+    {
+        // Do not execute the post_author migration to post terms if Co-Authors Plus is activated.
+        return (
+            (
+                !isset($GLOBALS['coauthors_plus'])
+                || empty($GLOBALS['coauthors_plus'])
+            )
+            && (
+                !defined('PUBLISHPRESS_AUTHORS_SKIP_AUTOMATIC_DATA_MIGRATION')
+                || false == PUBLISHPRESS_AUTHORS_SKIP_AUTOMATIC_DATA_MIGRATION
+            )
+        );
+    }
+
     /**
      * Runs methods when the plugin is running for the first time.
      *
@@ -35,8 +50,7 @@ class Installer
      */
     public static function runInstallTasks($currentVersion)
     {
-        // Do not execute the post_author migration to post terms if Co-Authors Plus is activated.
-        if (!isset($GLOBALS['coauthors_plus']) || empty($GLOBALS['coauthors_plus'])) {
+        if (self::shouldRunAutomaticDataMigration()) {
             self::createAuthorTermsForLegacyCoreAuthors();
             self::createAuthorTermsForPostsWithLegacyCoreAuthors();
         }
@@ -58,12 +72,9 @@ class Installer
      */
     public static function runUpgradeTasks($currentVersions)
     {
-        if (version_compare($currentVersions, '2.0.2', '<')) {
-            // Do not execute the post_author migration to post terms if Co-Authors Plus is activated.
-            if (!isset($GLOBALS['coauthors_plus']) || empty($GLOBALS['coauthors_plus'])) {
-                self::createAuthorTermsForLegacyCoreAuthors();
-                self::createAuthorTermsForPostsWithLegacyCoreAuthors();
-            }
+        if (version_compare($currentVersions, '2.0.2', '<') && self::shouldRunAutomaticDataMigration()) {
+            self::createAuthorTermsForLegacyCoreAuthors();
+            self::createAuthorTermsForPostsWithLegacyCoreAuthors();
         }
 
         if (version_compare($currentVersions, '3.6.0', '<')) {
