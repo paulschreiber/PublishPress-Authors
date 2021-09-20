@@ -9,6 +9,7 @@ extensions:
     enabled:
         - Codeception\Extension\RunFailed
         - tad\WPBrowser\Extension\Copier
+        - PublishPress\Codeception\Extension\Downloader
     commands:
         - Codeception\Command\GenerateWPUnit
         - Codeception\Command\GenerateWPRestApi
@@ -34,6 +35,12 @@ extensions:
                 template-tags.php: "%WP_ROOT_FOLDER%/wp-content/plugins/publishpress-authors/template-tags.php"
                 tests/codeception/_data/plugins/custom-post-type: "%WP_ROOT_FOLDER%/wp-content/plugins/custom-post-type"
                 tests/codeception/_data/themes/custom_twentytwenty: "%WP_ROOT_FOLDER%/wp-content/themes/twentytwenty"
+        PublishPress\Codeception\Extension\Downloader:
+            cache_dir: "downloads_cache"
+            files:
+                "https://downloads.wordpress.org/theme/twentytwentyone.1.4.zip": "%WP_ROOT_FOLDER%/wp-content/themes/"
+                "https://downloads.wordpress.org/theme/twentynineteen.2.1.zip": "%WP_ROOT_FOLDER%/wp-content/themes/"
+                "https://downloads.wordpress.org/theme/twentyseventeen.2.8.zip": "%WP_ROOT_FOLDER%/wp-content/themes/"
 params:
     - .env.testing
 settings:
