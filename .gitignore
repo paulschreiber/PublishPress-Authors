@@ -15,12 +15,8 @@ Thumbs.db
 # Ignores the "dev" composer file
 /vendor
 /packages
+/downloads_cache
 
-codeception.yml
-tests/acceptance.suite.yml
-tests/functional.suite.yml
-tests/unit.suite.yml
-tests/wpunit.suite.yml
 
 .svn
 .git
@@ -36,3 +32,4 @@ node_modules
 /dist
 .env.testing
 builder.yml
+phpcs.xml

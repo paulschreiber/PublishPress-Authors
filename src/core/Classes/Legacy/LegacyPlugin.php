@@ -147,11 +147,13 @@ class LegacyPlugin
     private function getModulesDirs()
     {
         $defaultDirs = [
-            'modules-settings' => PP_AUTHORS_MODULES_PATH,
-            'settings'         => PP_AUTHORS_MODULES_PATH,
-            'multiple-authors' => PP_AUTHORS_MODULES_PATH,
-            'default-layouts'  => PP_AUTHORS_MODULES_PATH,
-            'rest-api'         => PP_AUTHORS_MODULES_PATH,
+            'modules-settings'     => PP_AUTHORS_MODULES_PATH,
+            'settings'             => PP_AUTHORS_MODULES_PATH,
+            'multiple-authors'     => PP_AUTHORS_MODULES_PATH,
+            'default-layouts'      => PP_AUTHORS_MODULES_PATH,
+            'rest-api'             => PP_AUTHORS_MODULES_PATH,
+            'pro-placeholders'     => PP_AUTHORS_MODULES_PATH,
+            'polylang-integration' => PP_AUTHORS_MODULES_PATH,
         ];
 
         if (Utils::isBylineInstalled()) {
@@ -178,6 +180,10 @@ class LegacyPlugin
             $defaultDirs['elementor-integration'] = PP_AUTHORS_MODULES_PATH;
         }
 
+        if (Utils::isPolylangInstalled()) {
+            $defaultDirs['polylang-integration'] = PP_AUTHORS_MODULES_PATH;
+        }
+
         if (Utils::isGenesisInstalled()) {
             $defaultDirs['genesis-integration'] = PP_AUTHORS_MODULES_PATH;
         }
@@ -193,7 +199,7 @@ class LegacyPlugin
         if (Utils::isWPEngineInstalled()) {
             $defaultDirs['wpengine-integration'] = PP_AUTHORS_MODULES_PATH;
         }
-      
+
         if (Utils::isTheSEOFrameworkInstalled()) {
             $defaultDirs['seoframework-integration'] = PP_AUTHORS_MODULES_PATH;
         }

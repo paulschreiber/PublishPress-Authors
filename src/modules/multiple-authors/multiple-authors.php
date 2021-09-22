@@ -96,6 +96,7 @@ if (!class_exists('MA_Multiple_Authors')) {
                     'force_empty_author'           => 'no',
                     'username_in_search_field'     => 'no',
                     'default_author_for_new_posts' => null,
+                    'author_page_post_types'       => []
                 ],
                 'options_page'         => false,
                 'autoload'             => true,
@@ -182,6 +183,7 @@ if (!class_exists('MA_Multiple_Authors')) {
 
             if (!is_admin()) {
                 add_filter('body_class', [$this, 'filter_body_class']);
+                add_filter('comment_class', [$this, 'filterCommentClass'], 10, 5);
             }
 
             // Fix upload permissions for multiple authors.
@@ -204,6 +206,7 @@ if (!class_exists('MA_Multiple_Authors')) {
             // PublishPress compatibility hooks.
             add_filter('publishpress_search_authors_results_pre_search', [$this, 'publishpressSearchAuthors'], 10, 2);
             add_filter('publishpress_author_can_edit_posts', [$this, 'publishpressAuthorCanEditPosts'], 10, 2);
+            add_filter('publishpress_calendar_allow_multiple_authors', '__return_true');
             add_filter(
                 'publishpress_calendar_after_create_post',
                 [$this, 'publishpressCalendarAfterCreatePost'],
@@ -222,23 +225,25 @@ if (!class_exists('MA_Multiple_Authors')) {
             add_filter('the_author_posts_link', [$this, 'theAuthorPostsLink']);
 
             // Fix authors metadata.
-            add_filter('get_the_author_display_name', [$this, 'filter_author_metadata_display_name'], 10, 2);
-            add_filter('get_the_author_first_name', [$this, 'filter_author_metadata_first_name'], 10, 2);
-            add_filter('get_the_author_last_name', [$this, 'filter_author_metadata_last_name'], 10, 2);
-            add_filter('get_the_author_ID', [$this, 'filter_author_metadata_ID'], 10, 2);
-            add_filter('get_the_author_headline', [$this, 'filter_author_metadata_headline'], 10, 2);
-            add_filter('get_the_author_aim', [$this, 'filter_author_metadata_aim'], 10, 2);
-            add_filter('get_the_author_description', [$this, 'filter_author_metadata_description'], 10, 2);
-            add_filter('get_the_author_jabber', [$this, 'filter_author_metadata_jabber'], 10, 2);
-            add_filter('get_the_author_nickname', [$this, 'filter_author_metadata_nickname'], 10, 2);
-            add_filter('get_the_author_user_description', [$this, 'filter_author_metadata_user_description'], 10, 2);
-            add_filter('get_the_author_user_email', [$this, 'filter_author_metadata_user_email'], 10, 2);
-            add_filter('get_the_author_user_url', [$this, 'filter_author_metadata_user_url'], 10, 2);
-            add_filter('get_the_author_user_nicename', [$this, 'filter_author_metadata_user_nicename'], 10, 2);
-            add_filter('get_the_author_yim', [$this, 'filter_author_metadata_yim'], 10, 2);
-            add_filter('get_the_author_facebook', [$this, 'filter_author_metadata_facebook'], 10, 2);
-            add_filter('get_the_author_twitter', [$this, 'filter_author_metadata_twitter'], 10, 2);
-            add_filter('get_the_author_instagram', [$this, 'filter_author_metadata_instagram'], 10, 2);
+            add_filter('get_the_author_display_name', [$this, 'filter_author_metadata_display_name'], 10, 3);
+            add_filter('get_the_author_first_name', [$this, 'filter_author_metadata_first_name'], 10, 3);
+            add_filter('get_the_author_user_firstname', [$this, 'filter_author_metadata_first_name'], 10, 3);
+            add_filter('get_the_author_last_name', [$this, 'filter_author_metadata_last_name'], 10, 3);
+            add_filter('get_the_author_user_lastname', [$this, 'filter_author_metadata_last_name'], 10, 3);
+            add_filter('get_the_author_ID', [$this, 'filter_author_metadata_ID'], 10, 3);
+            add_filter('get_the_author_headline', [$this, 'filter_author_metadata_headline'], 10, 3);
+            add_filter('get_the_author_aim', [$this, 'filter_author_metadata_aim'], 10, 3);
+            add_filter('get_the_author_description', [$this, 'filter_author_metadata_description'], 10, 3);
+            add_filter('get_the_author_user_description', [$this, 'filter_author_metadata_description'], 10, 3);
+            add_filter('get_the_author_jabber', [$this, 'filter_author_metadata_jabber'], 10, 3);
+            add_filter('get_the_author_nickname', [$this, 'filter_author_metadata_nickname'], 10, 3);
+            add_filter('get_the_author_user_email', [$this, 'filter_author_metadata_user_email'], 10, 3);
+            add_filter('get_the_author_user_nicename', [$this, 'filter_author_metadata_user_nicename'], 10, 3);
+            add_filter('get_the_author_user_url', [$this, 'filter_author_metadata_user_url'], 10, 3);
+            add_filter('get_the_author_yim', [$this, 'filter_author_metadata_yim'], 10, 3);
+            add_filter('get_the_author_facebook', [$this, 'filter_author_metadata_facebook'], 10, 3);
+            add_filter('get_the_author_twitter', [$this, 'filter_author_metadata_twitter'], 10, 3);
+            add_filter('get_the_author_instagram', [$this, 'filter_author_metadata_instagram'], 10, 3);
 
             // Fix authors avatar.
             add_filter('pre_get_avatar_data', [$this, 'filter_pre_get_avatar_data'], 15, 2);
@@ -246,6 +251,8 @@ if (!class_exists('MA_Multiple_Authors')) {
             add_action('publishpress_authors_set_post_authors', [$this, 'actionSetPostAuthors'], 10, 2);
 
             add_action('profile_update', [$this, 'userProfileUpdate'], 10, 2);
+
+            add_filter('pre_comment_approved', [$this, 'preCommentApproved'], 10, 2);
         }
 
         /**
@@ -353,6 +360,20 @@ if (!class_exists('MA_Multiple_Authors')) {
                     unset($currentSubmenu[$itemsToSort['edit.php?post_type=ppmacf_layout']]);
                 }
 
+                // Fields - Pro Placeholders
+                if (isset($itemsToSort['admin.php?page=ppma-pro-placeholders-fields'])) {
+                    $newSubmenu[] = $currentSubmenu[$itemsToSort['admin.php?page=ppma-pro-placeholders-fields']];
+
+                    unset($currentSubmenu[$itemsToSort['admin.php?page=ppma-pro-placeholders-fields']]);
+                }
+
+                // Layouts - Pro Placeholders
+                if (isset($itemsToSort['admin.php?page=ppma-pro-placeholders-layouts'])) {
+                    $newSubmenu[] = $currentSubmenu[$itemsToSort['admin.php?page=ppma-pro-placeholders-layouts']];
+
+                    unset($currentSubmenu[$itemsToSort['admin.php?page=ppma-pro-placeholders-layouts']]);
+                }
+
                 // Check if we have other menu items, except settings. They will be added to the end.
                 if (count($currentSubmenu) >= 1) {
                     $itemsToIgnore = [
@@ -442,6 +463,14 @@ if (!class_exists('MA_Multiple_Authors')) {
                 'post_types',
                 __('Add to these post types:', 'publishpress-authors'),
                 [$this, 'settings_post_types_option'],
+                $this->module->options_group_name,
+                $this->module->options_group_name . '_general'
+            );
+
+            add_settings_field(
+                'author_page_post_types',
+                __('Post types to display on the author\'s profile page:', 'publishpress-authors'),
+                [$this, 'settings_author_page_post_types_option'],
                 $this->module->options_group_name,
                 $this->module->options_group_name . '_general'
             );
@@ -588,6 +617,53 @@ if (!class_exists('MA_Multiple_Authors')) {
             $legacyPlugin->settings->helper_option_custom_post_type($this->module);
         }
 
+        public function settings_author_page_post_types_option()
+        {
+            $post_types = [
+                'post' => __('Posts'),
+                'page' => __('Pages'),
+            ];
+            $custom_post_types = $this->get_supported_post_types_for_module();
+            if (count($custom_post_types)) {
+                foreach ($custom_post_types as $custom_post_type => $args) {
+                    $post_types[$custom_post_type] = $args->label;
+                }
+            }
+
+            $checkedOption = is_array($this->module->options->author_page_post_types) ?
+                array_filter(
+                    $this->module->options->author_page_post_types,
+                    function ($value, $key) {
+                        return $value === 'on';
+                    },
+                    ARRAY_FILTER_USE_BOTH
+                )
+                : false;
+
+            $checkPostByDefault = empty($checkedOption);
+
+            foreach ($post_types as $post_type => $title) {
+                echo '<label for="author_page_post_type_' . esc_attr($post_type) . '-' . $this->module->slug . '">';
+                echo '<input id="author_page_post_type_' . esc_attr($post_type) . '-' . $this->module->slug . '" name="'
+                    . $this->module->options_group_name . '[author_page_post_types][' . esc_attr($post_type) . ']"';
+
+                    if (isset($this->module->options->author_page_post_types[$post_type])) {
+                        checked($this->module->options->author_page_post_types[$post_type], 'on');
+                    } elseif ($checkPostByDefault && $post_type === 'post') {
+                        checked('on', 'on');
+                    }
+
+                // Defining post_type_supports in the functions.php file or similar should disable the checkbox
+                disabled(post_type_supports($post_type, $this->module->post_type_support), true);
+                echo ' type="checkbox" value="on" />&nbsp;&nbsp;&nbsp;' . esc_html($title) . '</label>';
+                // Leave a note to the admin as a reminder that add_post_type_support has been used somewhere in their code
+                if (post_type_supports($post_type, $this->module->post_type_support)) {
+                    echo '&nbsp&nbsp;&nbsp;<span class="description">' . sprintf(__('Disabled because add_post_type_support(\'%1$s\', \'%2$s\') is included in a loaded file.', 'publishpress-authors'), $post_type, $this->module->post_type_support) . '</span>';
+                }
+                echo '<br />';
+            }
+        }
+
         /**
          * Displays the field to choose display or not the author box at the
          * end of the content
@@ -708,7 +784,7 @@ if (!class_exists('MA_Multiple_Authors')) {
             echo '<p class="ppma_settings_field_description">' . __(
                     'Author profiles can be mapped to WordPress user accounts. This option allows you to automatically create author profiles when users are created in these roles. You can also do this for existing users by clicking the "Create missed authors from role" button in the Maintenance tab.',
                     'publishpress-authors'
-                );
+                ) . '</p>';
 
             echo '</label>';
         }
@@ -877,8 +953,7 @@ if (!class_exists('MA_Multiple_Authors')) {
             echo '<p class="ppma_warning">' . __(
                     'Please be careful clicking these buttons. Before clicking, we recommend taking a site backup in case anything goes wrong.',
                     'publishpress-authors'
-                );
-            echo '</p>';
+                ) . '</p>';
 
             foreach ($actions as $actionName => $actionInfo) {
                 if (isset($actionInfo['button_link'])) {
@@ -965,6 +1040,10 @@ if (!class_exists('MA_Multiple_Authors')) {
                 }
             }
 
+            if (!isset($new_options['author_page_post_types']) || empty($new_options['author_page_post_types'])) {
+                $new_options['author_page_post_types'] = ['post' => 'on'];
+            }
+
             /**
              * @param array $newOptions
              * @param string $moduleName
@@ -997,8 +1076,7 @@ if (!class_exists('MA_Multiple_Authors')) {
         {
             $newLink   = '';
             $postID    = get_the_id();
-            $isArchive = empty($postID) && Util::isAuthor();
-            $authors   = get_multiple_authors($postID, true, $isArchive);
+            $authors   = get_multiple_authors($postID, false);
 
             foreach ($authors as $author) {
                 if (!empty($newLink)) {
@@ -1125,8 +1203,61 @@ if (!class_exists('MA_Multiple_Authors')) {
         }
 
         /**
+         * @param string[] $classes
+         * @param string $class
+         * @param int $commentID
+         * @param WP_Comment $comment
+         * @param int|WP_Post $postID
+         *
+         * @return mixed
+         */
+        public function filterCommentClass($classes, $class, $commentID, $comment, $postID) {
+            if (!function_exists('get_multiple_authors')) {
+                return $classes;
+            }
+
+            $postAuthors = get_multiple_authors($postID);
+
+            if (empty($postAuthors)) {
+                return $classes;
+            }
+
+            if (in_array('bypostauthor', $classes, true)) {
+                return $classes;
+            }
+
+            foreach ($postAuthors as $author) {
+                if ($comment->user_id === $author->user_id) {
+                    $classes[] = 'bypostauthor';
+                    break;
+                }
+            }
+
+            return $classes;
+        }
+
+        private function get_currrent_post_author()
+        {
+            global $post;
+
+            // TODO: check if this works on the author archive. Do we need to check is_author to pass the is_archive param?
+
+            if (is_archive() && Util::isAuthor()) {
+                $authors = get_multiple_authors(0, false, true);
+            } else {
+                $authors = get_multiple_authors($post);
+            }
+
+            if (count($authors) > 0 && !is_wp_error($authors[0]) && is_object($authors[0])) {
+                return $authors[0];
+            }
+
+            return false;
+        }
+
+        /**
          * @param int $id
-         * @return false|Author
+         * @return false|Author|WP_User
          */
         private function get_author_by_id($id)
         {
@@ -1144,19 +1275,29 @@ if (!class_exists('MA_Multiple_Authors')) {
                 $author = Author::get_by_term_id($id);
             }
 
+            if (empty($author)) {
+                $author = get_user_by('ID', $id);
+            }
+
             return $author;
         }
 
-        /**
-         * @param $meta_key
-         * @param $value
-         * @param $author_id
-         *
-         * @return mixed
-         */
-        private function get_author_meta($meta_key, $value, $author_id)
+        private function get_author_from_id_or_post($original_user_id)
         {
-            $author = $this->get_author_by_id($author_id);
+            $author = false;
+
+            if (false === $original_user_id) {
+                $author = $this->get_currrent_post_author($original_user_id);
+            } else {
+                $author = $this->get_author_by_id($original_user_id);
+            }
+
+            return $author;
+        }
+
+        private function get_author_meta($meta_key, $author_id)
+        {
+            $author = $this->get_author_from_id_or_post($author_id);
 
             if (is_object($author)) {
                 $value = $author->get_meta($meta_key);
@@ -1165,23 +1306,25 @@ if (!class_exists('MA_Multiple_Authors')) {
             return $value;
         }
 
+        private function is_author_instance($instance)
+        {
+            return is_object($instance) && get_class($instance) === Author::class;
+        }
+
+
         /**
          * @param string $value The value of the metadata.
          * @param int $user_id The user ID for the value.
+         * @param int $original_user_id The original user ID
          *
          * @return mixed
          */
-        public function filter_author_metadata_headline($value, $user_id)
+        public function filter_author_metadata_ID($value, $user_id, $original_user_id)
         {
-            // Try to fix the headline for the guest authors page
-            if (empty($value) && empty($user_id) && is_archive() && Util::isAuthor()) {
-                $authors = get_multiple_authors(0, true, true);
+            $author = $this->get_author_from_id_or_post($original_user_id);
 
-                if (!empty($authors)) {
-                    $author = $authors[0];
-
-                    $value = $author->display_name;
-                }
+            if ($this->is_author_instance($author)) {
+                return $author->ID;
             }
 
             return $value;
@@ -1190,15 +1333,16 @@ if (!class_exists('MA_Multiple_Authors')) {
         /**
          * @param string $value The value of the metadata.
          * @param int $user_id The user ID for the value.
+         * @param int $original_user_id The original user ID
          *
          * @return mixed
          */
-        public function filter_author_metadata_aim($value, $user_id)
+        public function filter_author_metadata_display_name($value, $user_id, $original_user_id)
         {
-            $author_meta = $this->get_author_meta('aim', $value, $user_id);
+            $author = $this->get_author_from_id_or_post($original_user_id);
 
-            if (!is_null($author_meta)) {
-                $value = $author_meta;
+            if ($this->is_author_instance($author)) {
+                return $author->display_name;
             }
 
             return $value;
@@ -1207,15 +1351,16 @@ if (!class_exists('MA_Multiple_Authors')) {
         /**
          * @param string $value The value of the metadata.
          * @param int $user_id The user ID for the value.
+         * @param int $original_user_id The original user ID
          *
          * @return mixed
          */
-        public function filter_author_metadata_description($value, $user_id)
+        public function filter_author_metadata_first_name($value, $user_id, $original_user_id)
         {
-            $author_meta = $this->get_author_meta('description', $value, $user_id);
+            $author = $this->get_author_from_id_or_post($original_user_id);
 
-            if (!is_null($author_meta)) {
-                $value = $author_meta;
+            if ($this->is_author_instance($author)) {
+                return $author->first_name;
             }
 
             return $value;
@@ -1224,16 +1369,16 @@ if (!class_exists('MA_Multiple_Authors')) {
         /**
          * @param string $value The value of the metadata.
          * @param int $user_id The user ID for the value.
+         * @param int $original_user_id The original user ID
          *
          * @return mixed
          */
-        public function filter_author_metadata_display_name($value, $user_id)
+        public function filter_author_metadata_last_name($value, $user_id, $original_user_id)
         {
-            $author = $this->get_author_by_id($user_id);
+            $author = $this->get_author_from_id_or_post($original_user_id);
 
-
-            if (is_object($author)) {
-                $value = $author->display_name;
+            if ($this->is_author_instance($author)) {
+                return $author->last_name;
             }
 
             return $value;
@@ -1242,15 +1387,16 @@ if (!class_exists('MA_Multiple_Authors')) {
         /**
          * @param string $value The value of the metadata.
          * @param int $user_id The user ID for the value.
+         * @param int $original_user_id The original user ID
          *
          * @return mixed
          */
-        public function filter_author_metadata_first_name($value, $user_id)
+        public function filter_author_metadata_headline($value, $user_id, $original_user_id)
         {
-            $author = $this->get_author_by_id($user_id);
+            $author = $this->get_author_from_id_or_post($original_user_id);
 
-            if (is_object($author)) {
-                $value = $author->first_name;
+            if ($this->is_author_instance($author)) {
+                return $author->display_name;
             }
 
             return $value;
@@ -1259,15 +1405,16 @@ if (!class_exists('MA_Multiple_Authors')) {
         /**
          * @param string $value The value of the metadata.
          * @param int $user_id The user ID for the value.
+         * @param int $original_user_id The original user ID
          *
          * @return mixed
          */
-        public function filter_author_metadata_last_name($value, $user_id)
+        public function filter_author_metadata_description($value, $user_id, $original_user_id)
         {
-            $author = $this->get_author_by_id($user_id);
+            $author = $this->get_author_from_id_or_post($original_user_id);
 
-            if (is_object($author)) {
-                $value = $author->last_name;
+            if ($this->is_author_instance($author)) {
+                return $author->description;
             }
 
             return $value;
@@ -1276,15 +1423,16 @@ if (!class_exists('MA_Multiple_Authors')) {
         /**
          * @param string $value The value of the metadata.
          * @param int $user_id The user ID for the value.
+         * @param int $original_user_id The original user ID
          *
          * @return mixed
          */
-        public function filter_author_metadata_ID($value, $user_id)
+        public function filter_author_metadata_nickname($value, $user_id, $original_user_id)
         {
-            $author = $this->get_author_by_id($user_id);
+            $author = $this->get_author_from_id_or_post($original_user_id);
 
-            if (is_object($author)) {
-                $value = $author->ID;
+            if ($this->is_author_instance($author)) {
+                return $author->nickname;
             }
 
             return $value;
@@ -1293,15 +1441,16 @@ if (!class_exists('MA_Multiple_Authors')) {
         /**
          * @param string $value The value of the metadata.
          * @param int $user_id The user ID for the value.
+         * @param int $original_user_id The original user ID
          *
          * @return mixed
          */
-        public function filter_author_metadata_jabber($value, $user_id)
+        public function filter_author_metadata_aim($value, $user_id, $original_user_id)
         {
-            $author_meta = $this->get_author_meta('jabber', $value, $user_id);
+            $author = $this->get_author_from_id_or_post($original_user_id);
 
-            if (!is_null($author_meta)) {
-                $value = $author_meta;
+            if ($this->is_author_instance($author)) {
+                $value = $author->aim;
             }
 
             return $value;
@@ -1310,15 +1459,16 @@ if (!class_exists('MA_Multiple_Authors')) {
         /**
          * @param string $value The value of the metadata.
          * @param int $user_id The user ID for the value.
+         * @param int $original_user_id The original user ID
          *
          * @return mixed
          */
-        public function filter_author_metadata_nickname($value, $user_id)
+        public function filter_author_metadata_jabber($value, $user_id, $original_user_id)
         {
-            $author_meta = $this->get_author_meta('nickname', $value, $user_id);
+            $author = $this->get_author_from_id_or_post($original_user_id);
 
-            if (!is_null($author_meta)) {
-                $value = $author_meta;
+            if ($this->is_author_instance($author)) {
+                $value = $author->jabber;
             }
 
             return $value;
@@ -1327,31 +1477,15 @@ if (!class_exists('MA_Multiple_Authors')) {
         /**
          * @param string $value The value of the metadata.
          * @param int $user_id The user ID for the value.
+         * @param int $original_user_id The original user ID
          *
          * @return mixed
          */
-        public function filter_author_metadata_user_description($value, $user_id)
+        public function filter_author_metadata_user_email($value, $user_id, $original_user_id)
         {
-            $author_meta = $this->get_author_meta('user_description', $value, $user_id);
+            $author = $this->get_author_from_id_or_post($original_user_id);
 
-            if (!is_null($author_meta)) {
-                $value = $author_meta;
-            }
-
-            return $value;
-        }
-
-        /**
-         * @param string $value The value of the metadata.
-         * @param int $user_id The user ID for the value.
-         *
-         * @return mixed
-         */
-        public function filter_author_metadata_user_email($value, $user_id)
-        {
-            $author = $this->get_author_by_id($user_id);
-
-            if (is_object($author)) {
+            if ($this->is_author_instance($author)) {
                 $value = $author->user_email;
             }
 
@@ -1361,14 +1495,15 @@ if (!class_exists('MA_Multiple_Authors')) {
         /**
          * @param string $value The value of the metadata.
          * @param int $user_id The user ID for the value.
+         * @param int $original_user_id The original user ID
          *
          * @return mixed
          */
-        public function filter_author_metadata_user_nicename($value, $user_id)
+        public function filter_author_metadata_user_nicename($value, $user_id, $original_user_id)
         {
-            $author = $this->get_author_by_id($user_id);
+            $author = $this->get_author_from_id_or_post($original_user_id);
 
-            if (is_object($author)) {
+            if ($this->is_author_instance($author)) {
                 $value = $author->user_nicename;
             }
 
@@ -1378,14 +1513,15 @@ if (!class_exists('MA_Multiple_Authors')) {
         /**
          * @param string $value The value of the metadata.
          * @param int $user_id The user ID for the value.
+         * @param int $original_user_id The original user ID
          *
          * @return mixed
          */
-        public function filter_author_metadata_user_url($value, $user_id)
+        public function filter_author_metadata_user_url($value, $user_id, $original_user_id)
         {
-            $author = $this->get_author_by_id($user_id);
+            $author = $this->get_author_from_id_or_post($original_user_id);
 
-            if (is_object($author)) {
+            if ($this->is_author_instance($author)) {
                 $value = $author->user_url;
             }
 
@@ -1395,15 +1531,16 @@ if (!class_exists('MA_Multiple_Authors')) {
         /**
          * @param string $value The value of the metadata.
          * @param int $user_id The user ID for the value.
+         * @param int $original_user_id The original user ID
          *
          * @return mixed
          */
-        public function filter_author_metadata_yim($value, $user_id)
+        public function filter_author_metadata_yim($value, $user_id, $original_user_id)
         {
-            $author_meta = $this->get_author_meta('yim', $value, $user_id);
+            $author = $this->get_author_from_id_or_post($original_user_id);
 
-            if (!is_null($author_meta)) {
-                $value = $author_meta;
+            if ($this->is_author_instance($author)) {
+                $value = $author->yim;
             }
 
             return $value;
@@ -1412,15 +1549,16 @@ if (!class_exists('MA_Multiple_Authors')) {
         /**
          * @param string $value The value of the metadata.
          * @param int $user_id The user ID for the value.
+         * @param int $original_user_id The original user ID
          *
          * @return mixed
          */
-        public function filter_author_metadata_facebook($value, $user_id)
+        public function filter_author_metadata_facebook($value, $user_id, $original_user_id)
         {
-            $author_meta = $this->get_author_meta('facebook', $value, $user_id);
+            $author = $this->get_author_from_id_or_post($original_user_id);
 
-            if (!is_null($author_meta)) {
-                $value = $author_meta;
+            if ($this->is_author_instance($author)) {
+                $value = $author->facebook;
             }
 
             return $value;
@@ -1429,15 +1567,16 @@ if (!class_exists('MA_Multiple_Authors')) {
         /**
          * @param string $value The value of the metadata.
          * @param int $user_id The user ID for the value.
+         * @param int $original_user_id The original user ID
          *
          * @return mixed
          */
-        public function filter_author_metadata_twitter($value, $user_id)
+        public function filter_author_metadata_twitter($value, $user_id, $original_user_id)
         {
-            $author_meta = $this->get_author_meta('twitter', $value, $user_id);
+            $author = $this->get_author_from_id_or_post($original_user_id);
 
-            if (!is_null($author_meta)) {
-                $value = $author_meta;
+            if ($this->is_author_instance($author)) {
+                $value = $author->twitter;
             }
 
             return $value;
@@ -1446,15 +1585,16 @@ if (!class_exists('MA_Multiple_Authors')) {
         /**
          * @param string $value The value of the metadata.
          * @param int $user_id The user ID for the value.
+         * @param int $original_user_id The original user ID
          *
          * @return mixed
          */
-        public function filter_author_metadata_instagram($value, $user_id)
+        public function filter_author_metadata_instagram($value, $user_id, $original_user_id)
         {
-            $author_meta = $this->get_author_meta('instagram', $value, $user_id);
+            $author = $this->get_author_from_id_or_post($original_user_id);
 
-            if (!is_null($author_meta)) {
-                $value = $author_meta;
+            if ($this->is_author_instance($author)) {
+                $value = $author->instagram;
             }
 
             return $value;
@@ -1612,8 +1752,8 @@ if (!class_exists('MA_Multiple_Authors')) {
             // Do not execute the post_author migration to post terms if Co-Authors Plus is activated.
             // The user need to manually run the Co-Authors migration task before running this again.
             if (!$this->isCoAuthorsPlusActivated()) {
-                Installer::convert_post_author_into_taxonomy();
-                Installer::add_author_term_for_posts();
+                Installer::createAuthorTermsForLegacyCoreAuthors();
+                Installer::createAuthorTermsForPostsWithLegacyCoreAuthors();
             }
         }
 
@@ -1684,8 +1824,8 @@ if (!class_exists('MA_Multiple_Authors')) {
             } while ($i->iterate());
 
             // Co-Authors sometimes don't have a taxonomy term for the author, but uses the post_author value instead.
-            Installer::convert_post_author_into_taxonomy();
-            Installer::add_author_term_for_posts();
+            Installer::createAuthorTermsForLegacyCoreAuthors();
+            Installer::createAuthorTermsForPostsWithLegacyCoreAuthors();
         }
 
         /**
@@ -1734,11 +1874,13 @@ if (!class_exists('MA_Multiple_Authors')) {
                     $post_id = (int)$args[0];
 
                     // Check if the user is an author for the current post
-                    if (is_multiple_author_for_post($user_id, $post_id)) {
-                        foreach ($caps as &$item) {
-                            // If he is an author for this post we should only check edit_posts.
-                            if ($item === 'edit_others_posts') {
-                                $item = 'edit_posts';
+                    if ($post_id > 0) {
+                        if (is_multiple_author_for_post($user_id, $post_id)) {
+                            foreach ($caps as &$item) {
+                                // If he is an author for this post we should only check edit_posts.
+                                if ($item === 'edit_others_posts') {
+                                    $item = 'edit_posts';
+                                }
                             }
                         }
                     }
@@ -2229,8 +2371,8 @@ if (!class_exists('MA_Multiple_Authors')) {
             }
 
             // Co-Authors sometimes don't have a taxonomy term for the author, but uses the post_author value instead.
-            Installer::convert_post_author_into_taxonomy();
-            Installer::add_author_term_for_posts();
+            Installer::createAuthorTermsForLegacyCoreAuthors();
+            Installer::createAuthorTermsForPostsWithLegacyCoreAuthors();
 
             do_action('publishpress_authors_flush_cache');
 
@@ -2281,7 +2423,7 @@ if (!class_exists('MA_Multiple_Authors')) {
         public function handle_deleted_user($id)
         {
             // Check if we have an author for the user
-            $author = $this->get_author_by_id($id);
+            $author = Author::get_by_user_id($id);
 
             if (false !== $author) {
                 Author::convert_into_guest_author($author->term_id);
@@ -2442,18 +2584,18 @@ if (!class_exists('MA_Multiple_Authors')) {
             try {
                 if ($authorId > 0) {
                     $author = Author::get_by_user_id($authorId);
-                    $user   = $author->get_user_object();
-
-                    if (is_object($user)) {
-                        $canEdit = $user->has_cap('edit_posts');
-                    }
                 } else {
                     $author = Author::get_by_term_id($authorId * -1);
-                    $user   = $author->get_user_object();
 
-                    if (is_object($user)) {
-                        $canEdit = $author->is_guest() ? true : $user->has_cap('edit_posts');
+                    if ($author->is_guest()) {
+                        return true;
                     }
+                }
+
+                $user = $author->get_user_object();
+
+                if (is_object($user)) {
+                    return $user->has_cap('edit_posts');
                 }
             } catch (Exception $e) {
             }
@@ -2461,17 +2603,24 @@ if (!class_exists('MA_Multiple_Authors')) {
             return $canEdit;
         }
 
-        public function publishpressCalendarAfterCreatePost($postId, $postAuthorId)
+        public function publishpressCalendarAfterCreatePost($postId, $postAuthorIds)
         {
-            $author = null;
-            if ($postAuthorId > 0) {
-                $author = Author::get_by_user_id($postAuthorId);
-            } else {
-                $author = Author::get_by_term_id(abs($postAuthorId));
+            $validPostAuthors = [];
+
+            foreach  ($postAuthorIds as $authorId) {
+                if ($authorId > 0) {
+                    $author = Author::get_by_user_id($authorId);
+                } else {
+                    $author = Author::get_by_term_id(abs($authorId));
+                }
+
+                if (!empty($author)) {
+                    $validPostAuthors[] = $author;
+                }
             }
 
-            if (!empty($author)) {
-                Utils::set_post_authors($postId, [$author]);
+            if (!empty($validPostAuthors)) {
+                Utils::set_post_authors($postId, $validPostAuthors);
 
                 do_action('publishpress_authors_flush_cache');
             }
@@ -2563,6 +2712,27 @@ if (!class_exists('MA_Multiple_Authors')) {
                     $wp_rewrite->flush_rules();
                 }
             }
+        }
+
+        public function preCommentApproved($approved, $commentData)
+        {
+            $currentUser = wp_get_current_user();
+
+            if (empty($currentUser)) {
+                return $approved;
+            }
+
+            $currentUserAuthor = Author::get_by_user_id($currentUser->ID);
+
+            if (empty($currentUserAuthor) || !is_object($currentUserAuthor) || is_wp_error($currentUserAuthor)) {
+                return $approved;
+            }
+
+            if (Utils::isAuthorOfPost($commentData['comment_post_ID'], $currentUserAuthor)) {
+                return true;
+            }
+
+            return $approved;
         }
     }
 }

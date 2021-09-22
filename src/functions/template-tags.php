@@ -9,16 +9,17 @@
  */
 
 use MultipleAuthors\Classes\Authors_Iterator;
+use MultipleAuthors\Classes\Legacy\Util;
 use MultipleAuthors\Classes\Objects\Author;
 use MultipleAuthors\Classes\Utils;
+use MultipleAuthors\Factory;
 
 if (!function_exists('get_multiple_authors')) {
     /**
      * Get all authors for a post.
      *
      * @param WP_Post|int|null $post Post to fetch authors for. Defaults to global post.
-     * @param bool $filter_the_author If false, will not trigger the filter for the author, to avoid infinite
-     *                                            loop.
+     * @param bool $filter_the_author_deprecated Deprecated. Removed for fixing infinity loop issues.
      * @param bool $archive If true, will ignore the $post param and return the current author
      *                                            specified by the "author_name" URL param - for author pages.
      * @param bool $ignoreCache This cache cause sometimes errors in data received especially
@@ -28,7 +29,7 @@ if (!function_exists('get_multiple_authors')) {
      *
      * @return array Array of Author objects, a single WP_User object, or empty.
      */
-    function get_multiple_authors($post = 0, $filter_the_author = true, $archive = false, $ignoreCache = false)
+    function get_multiple_authors($post = 0, $filter_the_author_deprecated = false, $archive = false, $ignoreCache = false)
     {
         global $wpdb;
 
@@ -44,7 +45,9 @@ if (!function_exists('get_multiple_authors')) {
 
         $postId = (int)$post;
 
-        $cacheKey = $postId . ':' . ($filter_the_author ? 1 : 0) . ':' . ($archive ? 1 : 0);
+        //@todo: Filter the post type and only return the list if the post type is enabled.
+
+        $cacheKey = $postId . ':' . ($filter_the_author_deprecated ? 1 : 0) . ':' . ($archive ? 1 : 0);
 
         $authorName = '';
         if ($archive) {
@@ -59,6 +62,7 @@ if (!function_exists('get_multiple_authors')) {
             $authors = [];
 
             if (!$archive) {
+                //@todo: move this for before the cache check
                 if (empty($postId)) {
                     $post = get_post();
 
@@ -116,35 +120,36 @@ if (!function_exists('get_multiple_authors')) {
 
                     $author = Author::get_by_term_id($termId);
 
-                    if ($filter_the_author && !is_wp_error($author)) {
-                        $author->display_name = apply_filters('the_author', $author->display_name);
-                    }
-
                     $authors[] = $author;
                 }
             } else {
-                // Fallback to the post author
+                // Fallback to the post author, fixing the post and author relationship
                 $post = get_post($postId);
+
+                // TODO: Should we really just fail silently? Check WP_DEBUG and add a log error message.
+                if (empty($post) || is_wp_error($post) || !is_object($post) || empty($post->post_author)) {
+                    return [];
+                }
 
                 $author = Author::get_by_user_id($post->post_author);
 
                 if (empty($author) || is_wp_error($author)) {
-                    $user = get_user_by('id', $post->post_author);
+                    $postTypes = Util::get_selected_post_types();
 
-                    if ($user) {
-                        $user->link = get_author_posts_url($user->ID);
-
-                        if ($filter_the_author) {
-                            $user->display_name = apply_filters('the_author', $user->display_name);
-                        }
-
-                        $author = $user;
+                    if (in_array($post->post_type, $postTypes)) {
+                        $author = Author::create_from_user($post->post_author);
+                        $authors = [$author];
                     } else {
                         return [];
                     }
+                } else {
+                    $authors = [$author];
                 }
 
-                $authors[] = $author;
+                if (!empty($authors)) {
+                    // TODO: should we really automatically force fixing the author relationship here? If we call this method with "$archive=true" on a non-archive page, we can overwrite the current post authors.
+                    Utils::set_post_authors($postId, $authors);
+                }
             }
 
             wp_cache_set($cacheKey, $authors, 'get_multiple_authors:authors');
@@ -153,6 +158,7 @@ if (!function_exists('get_multiple_authors')) {
         return empty($authors) ? [] : $authors;
     }
 }
+
 
 if (!function_exists('multiple_authors_get_all_authors')) {
     /**
@@ -184,10 +190,10 @@ if (!function_exists('multiple_authors_get_all_authors')) {
                 "SELECT
                     t.term_id as `term_id`
                 FROM
-                    wp_terms AS t
-                    INNER JOIN wp_term_taxonomy AS tt ON (tt.term_id = t.term_id)
-                    INNER JOIN wp_term_relationships AS tr ON (tt.term_taxonomy_id = tr.term_taxonomy_id)
-                    INNER JOIN wp_posts AS p ON (tr.object_id = p.ID)
+                    {$wpdb->terms} AS t
+                    INNER JOIN {$wpdb->term_taxonomy} AS tt ON (tt.term_id = t.term_id)
+                    INNER JOIN {$wpdb->term_relationships} AS tr ON (tt.term_taxonomy_id = tr.term_taxonomy_id)
+                    INNER JOIN {$wpdb->posts} AS p ON (tr.object_id = p.ID)
                 WHERE
                     tt.taxonomy = 'author'
                     AND p.post_status IN ('publish')
@@ -202,9 +208,7 @@ if (!function_exists('multiple_authors_get_all_authors')) {
 
         $authors = [];
         foreach ($terms as $term) {
-            $author               = Author::get_by_term_id($term->term_id);
-            $author->display_name = apply_filters('the_author', $author->display_name);
-            $authors[]            = $author;
+            $authors[] = Author::get_by_term_id($term->term_id);
         }
 
         return $authors;
@@ -438,11 +442,10 @@ if (!function_exists('multiple_authors_posts_links_single')) {
             'href'        => get_author_posts_url($author->ID, $author->user_nicename),
             'rel'         => 'author',
             'title'       => sprintf(
-                __('Posts by %s', 'publishpress-authors'),
-                apply_filters('the_author', $author->display_name)
+                __('Posts by %s', 'publishpress-authors'), $author->display_name
             ),
             'class'       => 'author url fn',
-            'text'        => apply_filters('the_author', $author->display_name),
+            'text'        => $author->display_name,
             'after_html'  => '',
         ];
         $args        = apply_filters('coauthors_posts_link', $args, $author);
@@ -827,10 +830,10 @@ if (!function_exists('get_the_authors_posts_links')) {
                     // translators: Posts by a given author.
                     'title'       => sprintf(
                         __('Posts by %1$s', 'publishpress-authors'),
-                        apply_filters('the_author', $author->display_name)
+                        $author->display_name
                     ),
                     'class'       => 'author url fn',
-                    'text'        => apply_filters('the_author', $author->display_name),
+                    'text'        => $author->display_name,
                     'after_html'  => '',
                 ];
                 /**

@@ -137,6 +137,12 @@ class Author
         if (is_numeric($user)) {
             $user = get_user_by('id', (int)$user);
         }
+
+        if (is_a($user, 'stdClass')) {
+            $userInstance = new WP_User($user);
+            $user         = $userInstance;
+        }
+
         if (!is_a($user, 'WP_User')) {
             error_log(
                 sprintf(
@@ -149,14 +155,7 @@ class Author
         }
         $existing = self::get_by_user_id($user->ID);
         if ($existing) {
-            error_log(
-                sprintf(
-                    '[PublishPress Authors] The method %s tried to create an author that already exists for the user: %s',
-                    __METHOD__,
-                    maybe_serialize($user)
-                )
-            );
-            return false;
+            return $existing;
         }
         $author = self::create(
             [
@@ -189,6 +188,8 @@ class Author
     public static function get_by_user_id($user_id)
     {
         global $wpdb;
+
+        $user_id = (int)$user_id;
 
         if (!isset(self::$authorsByIdCache[$user_id]) || empty(self::$authorsByIdCache[$user_id])) {
             $term_id = $wpdb->get_var(
@@ -241,8 +242,15 @@ class Author
         );
 
         if (is_wp_error($termData)) {
+            $backtraceSeparator = "\n  - ";
+
             error_log(
-                sprintf('[PublishPress Authors] %s %s', $termData->get_error_message(), __METHOD__)
+                sprintf(
+                    "[PublishPress Authors] %s %s\n%s",
+                    $termData->get_error_message(),
+                    __METHOD__,
+                    $backtraceSeparator . implode($backtraceSeparator, wp_debug_backtrace_summary(null, 0, false))
+                )
             );
 
             return false;
@@ -295,8 +303,9 @@ class Author
      */
     public static function convert_into_guest_author($term_id)
     {
+        $userId = get_term_meta($term_id, 'user_id', true);
         delete_term_meta($term_id, 'user_id');
-        delete_term_meta($term_id, 'user_id');
+        delete_term_meta($term_id, 'user_id_' . $userId);
     }
 
     /**
@@ -348,6 +357,7 @@ class Author
 
         $properties['link']          = true;
         $properties['user_nicename'] = true;
+        $properties['display_name']  = true;
         $properties['name']          = true;
         $properties['slug']          = true;
         $properties['user_email']    = true;
@@ -358,6 +368,7 @@ class Author
         $properties['ID']            = true;
         $properties['first_name']    = true;
         $properties['last_name']     = true;
+        $properties['nickname']      = true;
 
         // Short circuit to only trigger the filter for additional fields if the property is not already defined.
         // Save resources and avoid infinity loops on some queries that check is $query->is_author.
@@ -408,7 +419,7 @@ class Author
                 if ($this->is_guest()) {
                     $return = abs($this->term_id) * -1;
                 } else {
-                    $return = $this->user_id;
+                    $return = (int)$this->user_id;
                 }
                 break;
 
@@ -484,9 +495,7 @@ class Author
             $return = false;
         }
 
-        $return = apply_filters('publishpress_authors_author_attribute', $return, $this->term_id, $attribute);
-
-        return $return;
+        return apply_filters('publishpress_authors_author_attribute', $return, $this->term_id, $attribute, $this);
     }
 
     /**
@@ -498,7 +507,7 @@ class Author
      */
     public function get_avatar_url($size = 96)
     {
-        if (!is_null($this->avatarUrl)) {
+        if (is_null($this->avatarUrl)) {
             if ($this->has_custom_avatar()) {
                 $url = $this->get_custom_avatar_url($size);
             } else {
@@ -534,6 +543,11 @@ class Author
         }
 
         return $this->metaCache[$key];
+    }
+
+    public function update_meta($key, $value)
+    {
+        Author_Utils::update_author_meta($this->term_id, $key, $value);
     }
 
     /**
@@ -750,4 +764,22 @@ class Author
 
         return isset(self::$authorsByEmailCache[$emailAddress]) ? self::$authorsByEmailCache[$emailAddress] : false;
     }
+
+    /**
+     * Get an author by the provided ID.
+     *
+     * This ID can either be the WP_User ID (positive integer) or guest author ID (negative integer).
+     *
+     * @param $id
+     *
+     * @return Author|false
+     */
+    public static function get_by_id($id)
+    {
+        if (intval($id) > -1) {
+            return self::get_by_user_id($id);
+        }
+        return self::get_by_term_id($id);
+    }
+
 }

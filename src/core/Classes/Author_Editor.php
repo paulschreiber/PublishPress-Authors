@@ -143,29 +143,36 @@ class Author_Editor
 
         $new_actions = [];
         $author      = Author::get_by_user_id($user->ID);
-        if ($author) {
-            $link                       = get_edit_term_link($author->term_id, 'author');
-            $new_actions['edit-author'] = '<a href="' . esc_url($link) . '">' . esc_html__(
-                    'Edit Author',
-                    'publishpress-authors'
-                ) . '</a>';
-        } else {
-            $args                         = [
-                'action'  => 'author_create_from_user',
-                'user_id' => $user->ID,
-                'nonce'   => wp_create_nonce('author_create_from_user' . $user->ID),
-            ];
-            $link                         = add_query_arg(
-                array_map('rawurlencode', $args),
-                admin_url('admin-ajax.php')
-            );
-            $new_actions['create-author'] = '<a href="' . esc_url($link) . '">' . esc_html__(
-                    'Create Author',
-                    'publishpress-authors'
-                ) . '</a>';
+
+        foreach ($actions as $key => $action) {
+            $new_actions[$key] = $action;
+
+            if ($key === 'edit') {
+                if ($author) {
+                    $link                       = get_edit_term_link($author->term_id, 'author');
+                    $new_actions['edit-author'] = '<a href="' . esc_url($link) . '">' . esc_html__(
+                            'Edit Author Profile',
+                            'publishpress-authors'
+                        ) . '</a>';
+                } else {
+                    $args                         = [
+                        'action'  => 'author_create_from_user',
+                        'user_id' => $user->ID,
+                        'nonce'   => wp_create_nonce('author_create_from_user' . $user->ID),
+                    ];
+                    $link                         = add_query_arg(
+                        array_map('rawurlencode', $args),
+                        admin_url('admin-ajax.php')
+                    );
+                    $new_actions['create-author'] = '<a href="' . esc_url($link) . '">' . esc_html__(
+                            'Create Author Profile',
+                            'publishpress-authors'
+                        ) . '</a>';
+                }
+            }
         }
 
-        return $new_actions + $actions;
+        return $new_actions;
     }
 
     /**
@@ -187,7 +194,7 @@ class Author_Editor
             unset($actions['inline hide-if-no-js']);
         }
 
-        // Over hide the string Edit
+        // Override the string Edit
         if (isset($actions['edit'])) {
             $actions['edit'] = str_replace(
                 '>Edit<',
@@ -198,17 +205,25 @@ class Author_Editor
 
         $author = Author::get_by_term_id($author_term->term_id);
 
-        $new_actions = [];
-
         if (!empty($author->user_id)) {
-            $link                     = get_edit_user_link($author->user_id);
-            $new_actions['edit-user'] = '<a href="' . esc_url($link) . '">' . esc_html__(
-                    'Edit User',
-                    'publishpress-authors'
-                ) . '</a>';
+            $new_actions = [];
+
+            foreach ($actions as $key => $action) {
+                $new_actions[$key] = $action;
+
+                if ($key === 'edit') {
+                    $link                     = get_edit_user_link($author->user_id);
+                    $new_actions['edit-user'] = '<a href="' . esc_url($link) . '">' . esc_html__(
+                            'Edit User',
+                            'publishpress-authors'
+                        ) . '</a>';
+                }
+            }
+
+            $actions = $new_actions;
         }
 
-        return $new_actions + $actions;
+        return $actions;
     }
 
     /**
@@ -432,9 +447,10 @@ class Author_Editor
         if (!isset($legacyPlugin->modules->multiple_authors)) {
             error_log(
                 sprintf(
-                    '[PublishPress Authors] Warning: Module multiple_authors not loaded. %s [user_id="%s"]',
+                    "[PublishPress Authors] Warning: Module multiple_authors not loaded. %s [user_id=\"%s\"]\n  - %s",
                     __METHOD__,
-                    $user_id
+                    $user_id,
+                    implode("\n  - ", wp_debug_backtrace_summary(null, 0, false))
                 )
             );
             return;

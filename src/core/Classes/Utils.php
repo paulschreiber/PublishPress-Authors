@@ -161,13 +161,15 @@ class Utils
      *
      * @param int $postId ID for the post to modify.
      * @param array $authors Bylines to set on the post.
+     * @param bool $syncPostAuthor
+     * @param int $fallbackUserId User ID for using as the author in case no author or if only guests are selected
      */
-    public static function set_post_authors($postId, $authors, $syncPostAuthor = true)
+    public static function set_post_authors($postId, $authors, $syncPostAuthor = true, $fallbackUserId = null)
     {
         static::set_post_authors_name_meta($postId, $authors);
 
         if ($syncPostAuthor) {
-            static::sync_post_author_column($postId, $authors);
+            static::sync_post_author_column($postId, $authors, $fallbackUserId);
         }
 
         $authors = wp_list_pluck($authors, 'term_id');
@@ -207,13 +209,14 @@ class Utils
     /**
      * @param int $postId ID for the post to modify.
      * @param array $authors Bylines to set on the post.
+     * @param int|null $fallbackUserId User ID for using as the author in case no author or if only guests are selected
      */
-    public static function sync_post_author_column($postId, $authors)
+    public static function sync_post_author_column($postId, $authors, $fallbackUserId = null)
     {
         $functionSetPostAuthor = function($postId, $authorId) {
             global $wpdb;
 
-            // Avoid to corrupt the post_author with an empty value.
+            // Avoid corrupting the post_author with an empty value.
             if (empty((int)$authorId)) {
                 return false;
             }
@@ -259,6 +262,12 @@ class Utils
         }
 
         if (!$postAuthorHasChanged) {
+            $fallbackUserId = (int)$fallbackUserId;
+
+            if (!empty($fallbackUserId)) {
+                $functionSetPostAuthor($postId, $fallbackUserId);
+            }
+
             // Check if the post has any author set. If not an existent author, create one and set the author term.
             $post = get_post($postId);
 
@@ -272,7 +281,7 @@ class Utils
                 if (is_object($author) && !is_wp_error($author)) {
                     Utils::set_post_authors($postId, [$author], false);
                 }
-            } else {
+            } elseif ($fallbackUserId !== (int)$post->post_author || empty($fallbackUserId)) {
                 $functionSetPostAuthor($postId, get_current_user_id());
             }
         }
@@ -303,12 +312,16 @@ class Utils
                     $author = Author::get_by_term_id($author);
                 }
 
-                $names[] = $author->name;
+                if (is_object($author)) {
+                    $names[] = $author->name;
+                }
             }
 
-            $names = implode(', ', $names);
+            if (!empty($names)) {
+                $names = implode(', ', $names);
 
-            update_post_meta($post_id, $metadata, $names);
+                update_post_meta($post_id, $metadata, $names);
+            }
         }
     }
 
@@ -498,7 +511,6 @@ class Utils
 
         $post_type = $post->post_type;
 
-        // TODO: need to fix this; shouldn't just say no if don't have post_type
         if (empty($post_type)) {
             return false;
         }
@@ -662,6 +674,11 @@ class Utils
         return true;
     }
 
+    public static function isPolylangInstalled()
+    {
+        return defined('POLYLANG_BASENAME');
+    }
+
     public static function isGenesisInstalled()
     {
         return function_exists('genesis_autoload_register');
@@ -682,11 +699,11 @@ class Utils
             return false;
         }
 
-        if (!class_exists('WPSEO_Schema_Context')) {
+        if (!class_exists('Yoast\\WP\\SEO\\Config\\Schema_IDs')) {
             return false;
         }
 
-        if (version_compare(WPSEO_VERSION, '13.4.1', '<')) {
+        if (version_compare(WPSEO_VERSION, '14.1', '<')) {
             if (!get_transient('publishpress_authors_not_compatible_yoast_warning')) {
                 error_log(
                     sprintf(
@@ -717,7 +734,7 @@ class Utils
 
         return self::$defaultLayout;
     }
-  
+
     public static function isWPEngineInstalled()
     {
         return class_exists('WpeCommon');
@@ -743,5 +760,31 @@ class Utils
     public static function isTheSEOFrameworkInstalled()
     {
         return defined('THE_SEO_FRAMEWORK_VERSION');
+    }
+
+    public static function isAuthorOfPost($postId, $author)
+    {
+        $postAuthors = get_multiple_authors($postId);
+        if (empty($postAuthors)) {
+            return false;
+        }
+
+        if (is_numeric($author)) {
+            $author = Author::get_by_id($author);
+        } elseif (is_string($author)) {
+            $author = Author::get_by_term_slug($author);
+        }
+
+        if (!is_object($author)) {
+            return false;
+        }
+
+        foreach ($postAuthors as $postAuthor) {
+            if ($postAuthor->ID === $author->ID) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

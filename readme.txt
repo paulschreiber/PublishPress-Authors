@@ -1,4 +1,4 @@
-=== PublishPress Authors: Show Multiple Authors and Guest Authors in an Author Box ===
+=== WordPress Co-Authors Multiple Authors and Guest Authors in an Author Box ===
 
 Contributors: publishpress, kevinB, stevejburge, andergmartins
 Author: PublishPress
@@ -6,12 +6,12 @@ Author URI: https://publishpress.com
 Tags: multiple authors, authors, guest authors, author fields, author layouts
 Requires at least: 4.7
 Requires PHP: 5.6
-Tested up to: 5.7
-Stable tag: 3.13.0
+Tested up to: 5.8
+Stable tag: 3.14.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-PublishPress Authors is the best plugin for adding multiple authors and guest authors to WordPress posts. You can show authors with a box, widget, shortcode or Gutenberg block.
+PublishPress Authors is the best plugin for adding co-authors, multiple authors and guest authors to WordPress posts.
 
 == Description ==
 
@@ -23,7 +23,10 @@ Here are the three most important features of PublishPress Authors:
 * **Multiple Authors**. By default, WordPress only allows one author per post. PublishPress Authors allows you to add an unlimited number of authors to each post. This is very useful if you have a busy site and need to manage and give credit to all your writers.
 * **Guest Authors**. You can create Guest Authors who don’t have an account on your site. This is important because not all writers need a username and password.
 
-= Multiple Authors and Co-Authors =
+> <strong>Authors Pro</strong><br />
+> This plugin is the free version of the Authors Pro plugin that comes with all the features you need to create beautiful and useful author profiles. <a href="https://publishpress.com/authors"  title="Authors Pro">Click here to purchase the best premium WordPress author box plugin now!</a>
+
+= Add Multiple Authors and Co-Authors to Your Posts =
 
 With PublishPress Authors, you can set multiple authors for each post. When you write a post, you’ll see a box in the right sidebar. Here you can choose from all the users on your site, and assign them as authors.
 
@@ -37,7 +40,7 @@ On the frontend of your site. PublishPress Authors gives you several different o
 
 [Click here to read about displaying authors](https://publishpress.com/knowledge-base/display-multiple-authors/).
 
-= Guest Authors =
+= Add Guest Authors With No WordPress Account =
 
 Using PublishPress Authors, you can create Guest Authors who don’t need an account on your site. PublishPress will treat Guest Authors identically to Authors who are linked users.
 
@@ -45,7 +48,8 @@ You will be able to select and display Guest Authors in exactly the same way as 
 
 [Click here to see how to create Guest Authors](https://publishpress.com/knowledge-base/add-guest-authors-wordpress/).
 
-= Multiple Layout Options for Author Profiles =
+= Multiple Layout Options for Author Bio Profiles =
+
 PublishPress Authors provides five default ways to display the author profiles on your site. In the PublishPress Authors settings you can choose from these layouts:
 
 * Simple list
@@ -54,34 +58,37 @@ PublishPress Authors provides five default ways to display the author profiles o
 * Inline
 * Inline with Avatars
 
-[Click here to see details on all the layout options](https://publishpress.com/knowledge-base/layout/)
+[Click here to see details on all the layout options](https://publishpress.com/knowledge-base/layout/).
 
 = Custom Fields for Author Profiles (Pro version) =
 
-PublishPress Authors Pro enables you to create custom fields and enhance your author profiles. You can add Text, WYSIWYG, Link and email address fields. Then you can place those fields in author profiles using custom layouts.
+PublishPress Authors Pro enables you to create author fields and enhance your author profiles. You can add Text, WYSIWYG, Link and email address fields. Then you can place those author fields in author bio profiles using custom layouts.
 
-[Click here to see how to use Custom Fields](https://publishpress.com/knowledge-base/custom-fields/)
+[Click here to see how to use Custom Fields](https://publishpress.com/knowledge-base/custom-fields/).
 
 = Custom Layouts for Author Profiles (Pro version) =
 
-PublishPress Authors enables you to build custom layouts for your author profiles. Using all your author information and custom fields, you can design beautiful layouts for your authors. Each layout is editable using HTML and PHP. You can add many different types of author information to these layouts including custom fields.
+PublishPress Authors enables you to build custom layouts for your author bio profiles. Using all your author information and custom fields, you can design beautiful layouts for your authors. Each layout is editable using HTML and PHP. You can add many different types of author information to these layouts including custom fields.
 
 [Click here to see how to customize author layouts](https://publishpress.com/knowledge-base/custom-layouts/).
 
 = Join PublishPress and get the Pro plugins =
+
 The Pro versions of the PublishPress plugins are well worth your investment. The Pro versions have extra features and faster support. [Click here to join PublishPress](https://publishpress.com/pricing/).
 
-Join PublishPress and you’ll get access to these plugins:
+Join PublishPress and you'll get access to these Pro plugins:
 
-* [Advanced Gutenberg](https://publishpress.com/blocks) add over 20 layout options, sliders, buttons, icons, image galleries, maps, tabs, testimonials, accordions, and much more.
-* [PublishPress Authors Pro](https://publishpress.com/authors) allows you to add multiple authors and guest authors to WordPress posts
+* [PublishPress Authors Pro](https://publishpress.com/authors) allows you to add multiple authors and guest authors to WordPress posts.
+* [PublishPress Blocks Pro](https://publishpress.com/blocks) has everything you need to build professional websites with the WordPress block editor.
 * [PublishPress Capabilities Pro](https://publishpress.com/capabilities) is the plugin to manage your WordPress user roles, permissions, and capabilities.
 * [PublishPress Checklists Pro](https://publishpress.com/checklists) enables you to define tasks that must be completed before content is published.
 * [PublishPress Permissions Pro](https://publishpress.com/permissions)  is the plugin for advanced WordPress permissions.
 * [PublishPress Pro](https://publishpress.com/publishpress) is the plugin for managing and scheduling WordPress content.
 * [PublishPress Revisions Pro](https://publishpress.com/revisions) allows you to update your published pages with teamwork and precision.
+* [PublishPress Series Pro](https://publishpress.com/series) enables you to group content together into a series
 
-Together, these plugins are a suite of powerful publishing tools for WordPress. If you need to create a professional workflow in WordPress, with moderation, revisions, permissions and more … then you should try PublishPress.
+Together, these plugins are a suite of powerful publishing tools for WordPress. If you need to create a professional workflow in WordPress, with moderation, revisions, permissions and more... then you should try PublishPress.
+
 
 =  Bug Reports =
 Bug reports for PublishPress Authors are welcomed in our [repository on GitHub](https://github.com/publishpress/publishpress-authors). Please note that GitHub is not a support forum, and that issues that aren’t properly qualified as bugs will be closed.
@@ -91,6 +98,113 @@ Follow PublishPress on [Facebook](https://www.facebook.com/publishpress), [Twitt
 = Thank You =
 This plugin is partly based on Co-Authors Plus, which includes the work of batmoo, danielbachhuber and automattic. This plugin also uses work from the Bylines plugin by danielbachhuber.
 
+== Screenshots ==
+
+1. Add multiple authors: With PublishPress Authors, you can choose multiple authors for each post.
+2. Show your author profiles: PublishPress Authors gives you multiple ways to show author profiles. You can display authors under your content, in a widget, using shortcodes and more.
+3. Add guest authors: Using PublishPress Authors, you can create Guest Authors who don’t need an account on your site.
+4. Custom fields for author profiles: PublishPress Authors Pro enables you to create custom fields for your author profiles.
+5.  Custom layouts for author profiles: PublishPress Authors Pro enables you to build custom layouts for authors.
+
+
+== Frequently Asked Questions ==
+
+= How do I display author boxes and author bios? =
+
+You have several different options for displaying authors using the PublishPress Authors plugin:<br />
+
+1. *Below the content*. Go to Authors > Settings and click the “Display” tab. Check the box saying, “This will display the authors box at the end of the content”. In the “Layout” box, you can choose from several layouts.
+2. *The Post Authors widget*. When you install the add-on, PublishPress Authors automatically creates a widget that you can use to show the authors. Go to Appearance > Widgets, and you can position your PublishPress Authors widget in any sidebar or widget area.
+3. *The Authors shortcode*. With PublishPress Authors shortcodes, you can display the author box in any part of the content. The default shortcode is [author_box]
+4. *Editing your theme*. PublishPress Authors allows you to show author details in your plugin or theme. You can use the action “pp_multiple_authors_show_author_box” to display the author box programmatically.
+
+= How do I import WordPress users to PublishPress Authors? =
+
+PublishPress Authors does use a different system than the WordPress core, so there may be some work involved with moving author data.
+
+When you first install PublishPress Authors, our plugin will try to import all your authors. However, there may be some more work needed if you have a large site or have been using a different plugin. After installing PublishPress Authors, go to the “Posts” screen to see if your authors have imported correctly.
+
+If you have a very large site with 1,000s or authors or posts, we recommend you use the WP CLI command line system.
+
+[Click here to see how to import WordPress users](https://publishpress.com/knowledge-base/move-user-guest-authors/).
+
+= How do I import from Co-Authors Plus and Byline plugins? =
+
+PublishPress Authors has a Co-Authors Plus import feature. Co-Authors Plus is a popular but older alternative to PublishPress Authors. This import will bring across all your author profiles. It will also keep track of which posts the authors are associated with. If you want to migrate your site from the CoAuthors Plus plugin, please try this on a test site before attempting it on a live site.
+
+[Click here to see how to import Co-Authors Plus authors](https://publishpress.com/knowledge-base/co-authors-plus/).
+
+You can import from the the Byline plugin to PublishPress Authors. Start with the old Byline plugin installed on your site. Go to “Authors”, then “Maintenance”. Look for the import option.
+
+[Click here to see how to import Byline authors](https://publishpress.com/knowledge-base/how-to-import-from-byline-to-multiple-authors/).
+
+= How do I show an author widget? =
+
+The PublishPress Authors plugin provides two widgets.
+
+The “Post Author” widget will display a list of authors for the current post. It is one of several ways that you can show the authors of a post.     In your WordPress site, go to Appearance > Widgets. Look for the “Post Author” widget.
+
+[Click here to see how to use the Post Author widget](https://publishpress.com/knowledge-base/post-author-widget/).
+
+The “Authors List” widget will display a list of all the authors on your site. If you want to show the authors of the post being viewed, try the Post Author widget. In your WordPress site, go to Appearance > Widgets. Look for the “Authors List” widget.
+
+[Click here to see how to use the Authors List widget](https://publishpress.com/knowledge-base/authors-list-widget/).
+
+= How can I create layouts for Author bio profiles? =
+
+PublishPress Authors provides five default ways to display the author profiles on your site. The Free version allows you to choose any of these layout options. The Pro version allows to modify these defaults and also create new layouts.
+
+In the PublishPress Authors Pro admin area, ggo to Authors > Layouts and you will see all five default layouts: Simple List, Inline with Avatars, Inline, Centered, Boxed. Click “Edit” for any layout and you'll see an editing screen. Each layout is editable using Twig. You can add many different types of author information to these layouts including custom fields.
+
+[Click here to see how to create author layouts](https://publishpress.com/knowledge-base/custom-layouts/).
+
+= Can I use PublishPress Authors with Elementor? =
+
+PublishPress Authors works well with the Elementor plugin. There are 5 options for showing Author profiles on your site. All of these will work with Elementor.
+However, we have made sure to make sure PublishPress Authors works with inside the main Elementor layout builder.
+
+
+Perhaps the easiest option for the Elementor layout builder is to use the Post Author widget.
+
+[Click here to see how to create Elementor Authors](https://publishpress.com/knowledge-base/authors-elementor/).
+
+= Can I use PublishPress Authors with Divi? =
+
+PublishPress Authors works well with the Divi theme.
+
+There are 5 options for showing Author profiles on your site. All of these will work with Divi. We have made sure that PublishPress Authors works with inside the main Divi layout builder.
+
+Perhaps the easiest option for the Divi layout builder is to use the Post Author widget. Go to Appearance > Widgets. Create a new widget region using this Divi box. I called my widget region “Authors Area”.
+
+[Click here to see how to create Divi Authors](https://publishpress.com/knowledge-base/authors-divi/).
+
+= How do I integrate PublishPress Authors with my theme? =
+
+The PublishPress Authors plugin allows you to show author profiles using this a snippet of PHP code. This code can be modified in many way to suit your needs. Don't worry if you're not technical. There are also other ways to show your authors that require no code. We recommend that you add these code snippets to a child theme, as that is best practice for WordPress theme development. We do have child themes available for some popular themes.
+
+[Click here to see how to modify the authors output](https://publishpress.com/knowledge-base/modify-theme-output-authors/).
+
+= Does PublishPress Authors work with my theme? =
+
+Author profiles can be a tricky area in WordPress because many themes try to add their own author details. We try to help customers using PublishPress Authors and make sure that the plugin works with your theme. So far, we have child themes available to help compatibility with some common themes including:
+
+* TwentyTwenty
+* TwentyNineteen
+* Newspaper
+* Magplus
+* Gridlove
+* Hestia
+* Kleo
+* Salient
+* Colormag
+* Extra
+* JNews
+* MyListing
+* Uncode
+* GeneratePress
+* Trellis
+* Rehub
+* Astra
 
 == Installation ==
 There are two ways to install the PublishPress Authors plugin:
@@ -114,11 +228,81 @@ There are two ways to install the PublishPress Authors plugin:
 
 == Changelog ==
 
-= UNRELEASED =
+= [3.14.7] - 21 Sep 2021 =
+
+* Fixed: Fix robots meta tag when Yoast SEO is installed and it is not the authors page, #508;
+* Fixed: Can't save multiple authors if Yoast SEO is activated, #504;
+* Fixed: Only allow mapping authors to users who have edit_posts capability, #492;
+* Fixed: Convert author to guest author when its user is deleted, #505;
+* Fixed: Secondary author's comments remain as awaiting moderation, #469;
+* Fixed: Restore the CLI command: assign-coauthors, but renaming to assign-author-by-meta-key, #438;
+* Fixed: Authors mapped to user are treated as as guest authors after removing all other authors in the post edit page, #523;
+* Fixed: PHP notice: Trying to get property of non-object in Post_Editor.php on line 293, #521;
+
+= [3.14.6] - 14 Sep 2021 =
+
+* Fixed: Fix the output of guest authors data on the frontend, #500;
+* Fixed: Fix "get_multiple_authors" resulting on error 500 when post author is zero, #511;
+* Fixed: Fix PublishPress Calendar integration with guest authors to avoid empty value on "post_author", #512;
+* Fixed: Fix PHP Notice: Trying to get property 'display_name' of non-object on authors column for post_author = 0, #514;
+* Fixed: Fix Yoast SEO structured data schema. Bumped min Yoast SEO version to 14.0, #472;
+
+= [3.14.5] - 01 Sep 2021 =
+
+* Fixed: Fix query for author posts doesn't work if instead of the author name we have the author ID or term ID, #487;
+* Fixed: Fix reduced font size for the author description, #435;
+* Fixed: Fix error message when post is not found, showing warning about "post_author" and "post_type" on null, #495;
+* Fixed: Fix the selection of fallback user for guest authors in the posts bulk edit form, #497;
+* Fixed: Fix PHP warnings for the shortcode "authors_list", used in the Pro plugin, #498;
+* Fixed: Add "author" taxonomy to Polylang, #18;
+
+= [3.14.4] - 19 Aug 2021 =
+
+* Fixed: Fix author profiles that are automatically created for users that are not on the selected user roles, #464;
+* Fixed: Fix authors not created when registered from the frontend for the selected user roles, #420;
+* Fixed: Fix guest authors compatibility with YoastSEO archive pages and the "robots" tag, #471;
+* Fixed: Fix PHP notice: Trying to get property 'name' of non-object in Utils.php, #485;
+* Fixed: Fix PHP notice: Trying to access array offset on value of type bool in class-wp-list-util.php, #486;
+
+= [3.14.3] - 01 Aug 2021 =
+
+* Fixed: Add class "bypostauthor" for secondary authors on comments, #154;
+* Fixed: Fixed the author byline on 3rd party themes in the front-end, #473;
+* Added: Added CSS class with the author slug to each author in the default layouts;
+
+= [3.14.2] - 21 Jul 2021 =
+
+* Fixed: Fix error on block editor for posts with guest authors, #463;
+
+= [3.14.1] - 20 Jul 2021 =
+
+* Changed: Invert position of Edit User and Edit Author Profile links in the term actions, #453;
+* Fixed: Fix sanitization of the user_id before adding it to a query;
+* Fixed: Fix compatibility with the search results on the plugin "Knowledge Base for Documents and FAQs" when an article is not found;
+* Fixed: Fix compatibility with PublishPress' calendar create item form for the author field, to select guest or mapped to user authors;
+* Fixed: Add compatibility with PublishPress' calendar to support multiple authors in the calendar form;
+* Fixed: Fix the warning: Undefined array key "post" in multiple-authors.php file, when opening the General settings page, #459;
+
+= [3.14.0] - 26 May 2021 =
+
+* Added: Added new setting for selecting multiple post types to display in the author page, #436;
+* Added: Added new function "get_by_id" to the Author class, accepting positive integer for User ID, and negative integer for term ID, #423;
+* Changed: Shortcode [author_box] was renamed to [publishpress_authors_box], #426;
+* Changed: Shortcode [ppma_test] was renamed to [publishpress_authors_test], #426;
+* Changed: Legacy shortcodes are loaded by default, but defining the constant PUBLISHPRESS_AUTHORS_LOAD_LEGACY_SHORTCODES = false will prevent to load them, #426;
+* Fixed: Fix the Author::get_avatar_url method returning the avatar URL, #443;
+
+= [3.13.1] - 22 Apr 2021 =
 
 * Fixed: Fix the color scheme for the Pro plugin, #411;
+* Fixed: Fix the links style for the boxed and centered layouts, #414;
+* Fixed: Hide the core author field in the post edit pages and add field to set a user as author if a post has only guest authors, #344;
+* Fixed: Fix relationship between post and author if not existent when running the function "get_multiple_authors". It fallbacks to the current post author, creating the Author term and relationship with the post, #396;
+* Fixed: Fix the CLI subcommand list-posts-without-terms adding support for the following arguments: [--post_type=<ptype>] [--posts_per_page=<num>] [--paged=<page>] [--order=<order>] [--orederby=<orderby>], #415;
+* Fixed: Fix the CLI subcommand create-terms-for-posts adding support for the following arguments: [--post_type=<ptype>] [--posts_per_page=<num>] [--paged=<page>], #415;
+* Changed: Temporarily disabled the CLI subcommands: update-author-terms, assign-coauthors, assign-user-to-coauthor, reassign-terms, rename-coauthor, swap-coauthors, remove-terms-from-revisions, #415;
 
-= [3.13.0] - 2021-03-18 =
+= [3.13.0] - 18 Mar 2021 =
 
 * Added: Improve layout for Centered box and add a color picker to choose a base color, #376, #377;
 * Added: Added new filter to extend the "post" variable exposed to the layouts. The new filter: "publishpress_authors_layout_post_properties", #384;
@@ -131,7 +315,7 @@ There are two ways to install the PublishPress Authors plugin:
 * Fixed: PHP Fatal error: Uncaught Error: [] operator not supported for strings in MA_Multiple_Authors->filter_workflow_receiver_post_authors #403;
 * Changed: Change the default layout to "boxed", #370;
 
-= [3.12.0] - 2021-02-23 =
+= [3.12.0] - 23 Feb 2021 =
 
 * Added: Added filters for customizing the byline on Elementor skins: publishpress_authors_elementor_posts_skin_cards_byline, publishpress_authors_elementor_posts_skin_classic_byline, #335;
 * Changed: Improved the style for the Boxed layout, #332;
@@ -152,7 +336,7 @@ There are two ways to install the PublishPress Authors plugin:
 * Fixed: Improved performance on author pages reducing the number of database queries only looking for an author taxonomy if a user was not found;
 * Fixed: Fix the Authors List widget title alignment wrapping it on a H2 tag;
 
-= [3.11.0] - 2021-01-25 =
+= [3.11.0] - 25 Jan 2021 =
 
 * Added: Added fields for setting the plural and single title to the author box and widget, #75;
 * Added: Added Rest API support to list the post's authors, #311;
@@ -173,7 +357,7 @@ There are two ways to install the PublishPress Authors plugin:
 * Fixed: Fixed multiple footers displayed when both Free and Pro are activated, #312;
 * Fixed: Fix PHP error when an older version of YoastSEO is installed and the warning "not compatible YoastSEO" is showed;
 
-= [3.10.0] - 2020-12-15 =
+= [3.10.0] - 15 Dec 2020 =
 
 * Fixed: Changed the way we sync post_author column: Current user will only be set as author if no terms where found for the post, or there are only guest authors. If post_author is empty, we set it for the current user, creating an author term for it, #286.
 * Fixed: Duplicated queries for the same given email in the method MultipleAuthors\Classes\Author_Utils::get_author_term_id_by_email(). Added a cache for the query results and an option to ignore the cache, #293;
@@ -190,20 +374,20 @@ There are two ways to install the PublishPress Authors plugin:
 * Added: Added new constant "PUBLISHPRESS_AUTHORS_SYNC_POST_AUTHOR_CHUNK_SIZE" for defining the size of the chunck of posts to convert authors in the maintenance task: Update author field on posts. Default to 10;
 * Removed: Removed the support to the filter "coauthors_auto_apply_template_tags", #297;
 
-= [3.9.0] - 2020-11-24 =
+= [3.9.0] - 24 Nov 2020 =
 
 * Added: Added support to Bulk Edit for authors in the post list, #263 and #280;
 * Fixed: Fixed maintenance tasks to consider all the selected post types and not "post" only, #276;
 * Fixed: Fixed compatibility issue with the WP RSS Aggregator plugin, #278;
 * Fixed: Restored the posts count in the Authors and Users list, #275;
 
-= [3.8.1] - 2020-11-05 =
+= [3.8.1] - 05 Nov 2020 =
 
 * Fixed: Fixed the consistency of avatar dimensions between the img tag attributes and the CSS, #258;
 * Fixed: Fixed edit_posts permission check for the PublishPress calendar, #264;
 * Fixed: Restored the post count column in the Authors list, #95;
 
-= [3.8.0] - 2020-10-08 =
+= [3.8.0] - 08 Aug 2020 =
 
 * Fixed: Fixed PHP warning about undefined "default_author_for_new_posts" attribute for the module options;
 * Fixed: Fixed the empty setting field "Default author for new posts", #242;
@@ -213,36 +397,36 @@ There are two ways to install the PublishPress Authors plugin:
 * Added: Added new maintenance task to sync post_author with author terms for all posts, #171;
 * Added: Added basic support for multiple authors in the Ultimate Members plugin's posts, #251;
 
-= [3.7.3] - 2020-09-21 =
+= [3.7.3] - 21 Sep 2020 =
 
 * Fixed: Fixed unresponsive author select box for new posts, #244;
 
-= [3.7.2] - 2020-09-14 =
+= [3.7.2] - 14 Sep 2020 =
 
 * Fixed: Fixed the reordering issue on authors in the post edit page;
 
-= [3.7.1] - 2020-09-11 =
+= [3.7.1] - 11 Sep 2020 =
 
 * Fixed: Fixed the authors field in the quick edit panel. It was displaying all authors instead of only the post authors, #236;
 
-= [3.7.0] - 2020-09-10 =
+= [3.7.0] - 10 Sep 2020 =
 
 * Fixed: Fixed performance issue in the post list and edit page removing avatars from the authors fields, #227;
 * Added: Added option to change the default author for new posts in the site, #50;
 
-= [3.6.3] - 2020-09-04 =
+= [3.6.3] - 04 Sep 2020 =
 
 * Fixed: Fix error "Uncaught Error: Call to a member function add_cap() on null", #223;
 
-= [3.6.2] - 2020-09-03 =
+= [3.6.2] - 03 Sep 2020 =
 
 * Fixed: Fix error "Call to a member function get_error_message() on boolean", a regression bug result of the recent updates, #221;
 
-= [3.6.1] - 2020-09-03 =
+= [3.6.1] - 03 Sep 2020 =
 
 * Fixed: Fix admin notice for Co-Authors Plus displaying even when the plugin is not installed;
 
-= [3.6.0] - 2020-09-02 =
+= [3.6.0] - 02 Sep 2020 =
 
 * Added: Added support to update authors for posts using the quick edit form, #180;
 * Added: Added argument "$ignoreCache" to the get_multiple_authors;
@@ -256,7 +440,7 @@ There are two ways to install the PublishPress Authors plugin:
 * Fixed: Fixed fatal error that happens when get_term returns an error;
 * Fixed: Upgrade link and banner were displayed for all users with access to the admin, #208;
 
-= [3.5.1] - 2020-08-20 =
+= [3.5.1] - 20 Aug 2020 =
 
 * Fixed: Avoid warnings regarding constants already defined;
 * Fixed: Fixed the cache for the get_multiple_authors function for archive pages, #190;
@@ -266,7 +450,7 @@ There are two ways to install the PublishPress Authors plugin:
 * Fixed: Fixed Plugin::filter_user_has_cap() to use the correct user, not the current one, #186;
 * Fixed: Removed leftovers from the deprecated capability: ppma_edit_orphan_post, #193;
 
-= [3.5.0] - 2020-08-06 =
+= [3.5.0] - 06 Aug 2020 =
 
 * Added: Added a new widget to display all the authors, #76;
 * Added: Added option to display the username in the authors search field, #162;
@@ -275,12 +459,12 @@ There are two ways to install the PublishPress Authors plugin:
 * Fixed: Fix PHP notice on author page when user is not an author, #156;
 * Fixed: Fixed notice when a post doesn't exist after deleting the post, #167;
 
-= [3.4.0] - 2020-07-23 =
+= [3.4.0] - 23 Jul 2020 =
 
 * Added: Add new filter "publishpress_authors_author_attribute" for customizing author attributes in the layouts;
 * Fixed: Fix syntax on the file Author_Editor.php removing an invalid char;
 
-= [3.3.2] - 2020-07-13 =
+= [3.3.2] - 13 Jul 2020 =
 
 * Fixed: Fix the text domain loading, fixing the translations;
 * Fixed: Fix "orphan" authors when the mapped user is deleted, converting them in guest authors, #142;
@@ -290,7 +474,7 @@ There are two ways to install the PublishPress Authors plugin:
 * Changed: Updated the min PHP version to 5.6;
 * Changed: Updated the WordPress tested up to version, to 5.4;
 
-= [3.3.1] - 2020-05-27 =
+= [3.3.1] - 27 May 2020 =
 
 * Added: Added the static function "get_by_email" to the Author class for getting an author by his e-mail address;
 * Changed: Improved error messages;
@@ -301,7 +485,7 @@ There are two ways to install the PublishPress Authors plugin:
 * Fixed: Improved integration with PublishPress adding support for multiple authors in the calendar. #129, #131;
 * Fixed: Updated the POT file;
 
-= [3.3.0] - 2020-05-05 =
+= [3.3.0] - 05 May 2020 =
 
 * Added: Some error messages are now added to the error log;
 * Added: Added links to the slug column in the authors list to open the authors page in the frontend;
@@ -336,7 +520,7 @@ There are two ways to install the PublishPress Authors plugin:
 * Fixed: The author object is now compatible with the main properties of WP_User objects, so guest authors can be treated as users on most cases;
 * Fixed: The custom user_url is not returned for authors mapped to user;
 
-= [3.2.4] - 2020-04-13 =
+= [3.2.4] - 13 Apr 2020 =
 
 * Added: Button to migrate data from the Bylines (Daniel Bachhuber) plugin;
 * Added: Button to migrate data from the Byline (Matt Dulin) plugin;
@@ -352,19 +536,19 @@ There are two ways to install the PublishPress Authors plugin:
 * Fixed: Fix the result of the function get_the_author_posts_link for supporting multiple authors;
 * Changed: Renamed the name of the Widget, from Multiple Authors to Authors;
 
-= [3.2.3] - 2020-03-16 =
+= [3.2.3] - 16 Mar 2020 =
 
 * Fixed: Wrong URL for the file multiple-authors-widget.css;
 * Fixed: Fixed the author page for compatibility to the Genesis framework;
 * Added: Added new filter to bypass the installation and data migration on special cases;
 * Added: Add top banner for the Pro version;
 
-= [3.2.2] - 2020-02-25 =
+= [3.2.2] - 25 Feb 2020 =
 
 * Fixed: Undefined class Authors_Iterator, #26;
 * Fixed: Error message related to Phing class file not found. Removed Phing from the package;
 
-= [3.2.1] - 2020-02-13 =
+= [3.2.1] - 13 Feb 2020 =
 
 * Fixed: Fixed the query for migrating posts' authors when installed for the first time;
 * Fixed: Fixed the assets URL for the plugin when it is installed in a folder different from wp-content/plugins
@@ -377,6 +561,6 @@ There are two ways to install the PublishPress Authors plugin:
 * Changed: Refactored the code to support the Pro version;
 * Removed: Removed the CMB2 library dependency;
 
-= [3.2.0] - 2020-01-03 =
+= [3.2.0] - 03 Jan 2020 =
 
 * First free public release. Based on PublishPress Multiple Authors v3.1.0.

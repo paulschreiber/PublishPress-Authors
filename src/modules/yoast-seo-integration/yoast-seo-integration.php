@@ -84,6 +84,7 @@ if (!class_exists('MA_Yoast_Seo_Integration')) {
                 $schemaFacade->addSupportForMultipleAuthors();
 
                 add_filter('wpseo_replacements', [$this, 'overrideSEOReplacementsForAuthorsPage'], 10, 2);
+                add_filter('wpseo_robots', [$this, 'wpseoRobots']);
             } catch (Exception $e) {
                 error_log(
                     sprintf('[PublishPress Authors] Method [%s] caught the exception %s', __METHOD__, $e->getMessage())
@@ -94,9 +95,15 @@ if (!class_exists('MA_Yoast_Seo_Integration')) {
         public function overrideSEOReplacementsForAuthorsPage($replacements, $args)
         {
             try {
+                $post = get_post();
+
+                if (!is_object($post) || is_wp_error($post)) {
+                    return $replacements;
+                }
+
                 foreach ($replacements as $key => &$value) {
                     if ($key === '%%name%%') {
-                        $authors = get_multiple_authors(0, true, true);
+                        $authors = get_multiple_authors($post->ID);
 
                         if (is_array($authors) && !empty($authors)) {
                             $author = $authors[0];
@@ -114,6 +121,19 @@ if (!class_exists('MA_Yoast_Seo_Integration')) {
             }
 
             return $replacements;
+        }
+
+        public function wpseoRobots($robotsString)
+        {
+            global $wp_query;
+
+            if ($wp_query->is_author && $wp_query->get('is_guest', false)) {
+                if ('noindex, follow' === $robotsString) {
+                    return 'index, follow';
+                }
+            }
+
+            return $robotsString;
         }
     }
 }

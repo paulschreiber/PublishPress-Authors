@@ -12,10 +12,10 @@ namespace MultipleAuthors;
 use MA_Multiple_Authors;
 use MultipleAuthors\Classes\Legacy\Util;
 use MultipleAuthors\Classes\Objects\Author;
+use MultipleAuthors\Classes\Post_Editor;
 use MultipleAuthors\Classes\Query;
 use MultipleAuthors\Classes\Utils;
 use MultipleAuthors\Traits\Author_box;
-use WP_Post;
 use WP_Query;
 
 defined('ABSPATH') or die('No direct script access allowed.');
@@ -58,11 +58,11 @@ class Plugin
         // Installation hooks
         add_action(
             'multiple_authors_install',
-            ['MultipleAuthors\\Classes\\Installer', 'install']
+            ['MultipleAuthors\\Classes\\Installer', 'runInstallTasks']
         );
         add_action(
             'multiple_authors_upgrade',
-            ['MultipleAuthors\\Classes\\Installer', 'upgrade']
+            ['MultipleAuthors\\Classes\\Installer', 'runUpgradeTasks']
         );
 
         if (!defined('PUBLISHPRESS_AUTHORS_BYPASS_INSTALLER') || !PUBLISHPRESS_AUTHORS_BYPASS_INSTALLER) {
@@ -95,8 +95,14 @@ class Plugin
         // Author box to the content
         add_filter('the_content', [$this, 'filter_the_content']);
 
-        // Shortcodes
-        add_shortcode('author_box', [$this, 'shortcode_author_box']);
+        /**
+         * @deprecated Since 3.13.2. Use publishpress_authors_box instead.
+         */
+        if (PUBLISHPRESS_AUTHORS_LOAD_LEGACY_SHORTCODES) {
+            add_shortcode('author_box', [$this, 'shortcodeAuthorsBox']);
+        }
+
+        add_shortcode('publishpress_authors_box', [$this, 'shortcodeAuthorsBox']);
 
         // Action to display the author box
         add_action('pp_multiple_authors_show_author_box', [$this, 'action_echo_author_box'], 10, 5);
@@ -108,7 +114,8 @@ class Plugin
         // Fix the author page.
         // Use posts_selection since it's after WP_Query has built the request and before it's queried any posts
         add_filter('posts_selection', [$this, 'fix_query_for_author_page']);
-        add_action('the_post', [$this, 'fix_post'], 10);
+
+        add_filter('the_author', [$this, 'filter_the_author']);
 
         add_action(
             'init',
@@ -146,6 +153,15 @@ class Plugin
             'parse_request',
             ['MultipleAuthors\\Classes\\Content_Model', 'action_parse_request']
         );
+
+        add_action(
+            'user_register',
+            ['MultipleAuthors\\Classes\\Author_Editor', 'action_user_register'],
+            20
+        );
+
+        // Hide the core Author field for the selected post types.
+        add_action('init', [Post_Editor::class, 'remove_core_author_field'], 9999);
 
         // Admin customizations.
         if (is_admin()) {
@@ -199,11 +215,6 @@ class Plugin
                 ['MultipleAuthors\\Classes\\Author_Editor', 'action_author_edit_form_fields']
             );
             add_action(
-                'user_register',
-                ['MultipleAuthors\\Classes\\Author_Editor', 'action_user_register'],
-                20
-            );
-            add_action(
                 'author_term_new_form_tag',
                 ['MultipleAuthors\\Classes\\Author_Editor', 'action_new_form_tag'],
                 10
@@ -249,7 +260,7 @@ class Plugin
         );
         add_filter(
             'posts_where',
-            ['MultipleAuthors\\Classes\\Query', 'filter_posts_where'],
+            ['MultipleAuthors\\Classes\\Query', 'filter_author_posts_where'],
             10,
             2
         );
@@ -280,7 +291,7 @@ class Plugin
         // Query modifications for the admin posts lists
         add_filter(
             'posts_where',
-            ['MultipleAuthors\\Classes\\Query', 'filter_posts_list_where'],
+            ['MultipleAuthors\\Classes\\Query', 'filter_admin_posts_list_where'],
             10,
             2
         );
@@ -368,10 +379,10 @@ class Plugin
 
     private function addTestShortcode()
     {
-        add_shortcode('ppma_test', [$this, 'ppma_test']);
+        add_shortcode('publishpress_authors_test', [$this, 'shortcodeTest']);
     }
 
-    public function ppma_test()
+    public function shortcodeTest()
     {
         echo '<b>PublishPress Authors:</b> shortcode rendered successfully!';
     }
@@ -845,6 +856,8 @@ class Plugin
      * @param int
      * @param array
      * @param bool
+     *
+     * @deprecated Since 3.14.7
      */
     public function add_coauthors($post_id, $coauthors, $append = false)
     {
@@ -1138,31 +1151,18 @@ class Plugin
         return $shortCircuit;
     }
 
-    public function fix_post(WP_Post $post)
+    public function filter_the_author($authorDisplayName)
     {
-        $legacyPlugin = Factory::getLegacyPlugin();
-
-        if (empty($legacyPlugin) || !isset($legacyPlugin->multiple_authors) || !Utils::is_post_type_enabled()) {
-            return $post;
+        if (!function_exists('get_multiple_authors')) {
+            return $authorDisplayName;
         }
 
-        global $authordata;
-
-        $authors = get_multiple_authors($post);
-
-        if (empty($authors)) {
-            return $post;
+        $authors = get_multiple_authors(get_post());
+        if (!empty($authors) && isset($authors[0]) && isset($authors[0]->display_name)) {
+            return $authors[0]->display_name;
         }
 
-        $firstAuthor = $authors[0];
-
-        if (!empty($authordata)) {
-            $authordata->display_name  = $firstAuthor->display_name;
-            $authordata->ID            = $firstAuthor->ID;
-            $authordata->user_nicename = $firstAuthor->user_nicename;
-        }
-
-        return $post;
+        return $authorDisplayName;
     }
 
     /**
@@ -1464,6 +1464,7 @@ class Plugin
         if (!$obj || 'revision' == $obj->name) {
             return $allcaps;
         }
+        //@todo: check if the post type is activated to the plugin. If not, just return $allcaps.
 
         $caps_to_modify = [
             $obj->cap->edit_post,
@@ -1629,7 +1630,7 @@ class Plugin
      *
      * @return string
      */
-    public function shortcode_author_box($attributes)
+    public function shortcodeAuthorsBox($attributes)
     {
         $show_title = true;
         $layout     = null;

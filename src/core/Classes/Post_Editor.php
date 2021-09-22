@@ -12,6 +12,8 @@ namespace MultipleAuthors\Classes;
 
 use MultipleAuthors\Classes\Objects\Author;
 use MultipleAuthors\Factory;
+use WP_Post;
+use WP_REST_Response;
 
 
 /**
@@ -37,11 +39,12 @@ class Post_Editor
                     10,
                     2
                 );
-                add_action('bulk_edit_custom_box', [__CLASS__, 'add_author_bulk_quick_edit_custom_box'], 10, 2);
-                add_action('quick_edit_custom_box', [__CLASS__, 'add_author_bulk_quick_edit_custom_box'], 10, 2);
-                add_action('wp_ajax_save_bulk_edit_authors', [__CLASS__, 'save_bulk_edit_authors'], 10, 2);
             }
         }
+
+        add_action('bulk_edit_custom_box', [__CLASS__, 'add_author_bulk_quick_edit_custom_box'], 10, 2);
+        add_action('quick_edit_custom_box', [__CLASS__, 'add_author_bulk_quick_edit_custom_box'], 10, 2);
+        add_action('wp_ajax_save_bulk_edit_authors', [__CLASS__, 'save_bulk_edit_authors'], 10, 2);
     }
 
     /**
@@ -95,18 +98,22 @@ class Post_Editor
     /**
      * Render the authors for a post in the table
      *
-     * @param string $column  Name of the column.
-     * @param int    $post_id ID of the post being rendered.
+     * @param string $column Name of the column.
+     * @param int $post_id ID of the post being rendered.
      */
     public static function action_manage_posts_custom_column($column, $post_id)
     {
         if ('authors' === $column) {
             // We need to ignore the cache for following call when this method were called after saved the post in a
             // quick edit operation, otherwise the authors column will show old values.
-            $authors     = get_multiple_authors($post_id, true, false, true);
+            $authors = get_multiple_authors($post_id, false, false, true);
 
-            $post_type   = get_post_type($post_id);
-            $authors_str = [];
+            $post_type = get_post_type($post_id);
+            $post      = get_post($post_id);
+
+            $authors_str         = [];
+            $showedPostAuthorUser = false;
+
             foreach ($authors as $author) {
                 if (is_a($author, 'WP_User')) {
                     $author = Author::get_by_user_id($author->ID);
@@ -119,26 +126,50 @@ class Post_Editor
                     if ('post' !== $post_type) {
                         $args['post_type'] = $post_type;
                     }
-                    $url           = add_query_arg(array_map('rawurlencode', $args), admin_url('edit.php'));
+                    $url = add_query_arg(array_map('rawurlencode', $args), admin_url('edit.php'));
+
+                    $classes = [
+                        'author_name'
+                    ];
+
+                    if ($author->user_id == $post->post_author) {
+                        $classes[]           = 'author_in_post';
+                        $showedPostAuthorUser = true;
+                    }
+
                     $authors_str[] = sprintf(
-                            '<a href="%s" data-author-term-id="%d" data-author-slug="%s" data-author-display-name="%s" class="author_name">%s</a>',
-                            esc_url($url),
-                            esc_attr($author->term_id),
-                            esc_attr($author->slug),
-                            esc_attr($author->display_name),
-                            esc_html($author->display_name)
+                        '<a href="%s" data-author-term-id="%d" data-author-slug="%s" data-author-display-name="%s" data-author-is-guest="%s" class="%s">%s</a>',
+                        esc_url($url),
+                        esc_attr($author->term_id),
+                        esc_attr($author->slug),
+                        esc_attr($author->display_name),
+                        esc_attr($author->is_guest() ? 1 : 0),
+                        implode(' ', $classes),
+                        esc_html($author->display_name)
                     );
                 }
             }
 
             if (empty($authors_str)) {
-                $authors_str[] = '<span aria-hidden="true">—</span><span class="screen-reader-text">' . __(
-                        'No author',
-                        'publishpress-authors'
-                    ) . '</span>';
+                $authors_str[] = sprintf(
+                    '<span class="current-post-author-warning">%s</span>',
+                    __('No author term', 'publishpress-authors')
+                );
             }
 
             echo implode(', ', $authors_str);
+
+            if (!$showedPostAuthorUser) {
+                if (empty($post->post_author)) {
+                    echo sprintf('<span class="current-post-author-warning">[%s]</span>', __('"post_author" is empty', 'publishpress-authors'));
+                } else {
+                    $user = get_user_by('ID', $post->post_author);
+
+                    if (is_a($user, 'WP_User')) {
+                        echo sprintf('<span class="current-post-author-off">[%s]</span>', $user->display_name);
+                    }
+                }
+            }
         }
     }
 
@@ -193,16 +224,22 @@ class Post_Editor
             $classes[] = 'authors-current-user-can-assign';
         }
         ?>
-        <ul class="<?php echo(implode(' ', $classes)); ?>">
+        <ul class="<?php
+        echo(implode(' ', $classes)); ?>">
             <?php
             if (!empty($authors)) {
                 foreach ($authors as $author) {
+                    if (!is_object($author) || is_wp_error($author)) {
+                        continue;
+                    }
+
                     $display_name = $author->display_name;
                     $term         = is_a($author, 'WP_User') ? 'u' . $author->ID : $author->term_id;
 
                     $args = [
                         'display_name' => $display_name,
                         'term'         => $term,
+                        'is_guest'     => $author->is_guest() ? 1 : 0,
                     ];
 
                     if ($showAvatars) {
@@ -219,9 +256,12 @@ class Post_Editor
 
         if (current_user_can(get_taxonomy('author')->cap->assign_terms)) {
             ?>
-            <select data-nonce="<?php echo esc_attr(wp_create_nonce('authors-search')); ?>"
+            <select data-nonce="<?php
+            echo esc_attr(wp_create_nonce('authors-search')); ?>"
+                    id="publishpress-authors-author-select"
                     class="authors-select2 authors-search"
-                    data-placeholder="<?php esc_attr_e('Search for an author', 'authors'); ?>" style="width: 100%">
+                    data-placeholder="<?php
+                    esc_attr_e('Search for an author', 'publishpress-authors'); ?>" style="width: 100%">
                 <option></option>
             </select>
             <script type="text/html" id="tmpl-authors-author-partial">
@@ -230,10 +270,33 @@ class Post_Editor
                     [
                         'display_name' => '{{ data.display_name }}',
                         'term'         => '{{ data.id }}',
+                        'is_guest'     => '{{ data.is_guest }}',
                     ]
                 );
                 ?>
             </script>
+            <?php
+            $post       = get_post();
+            $userAuthor = get_user_by('ID', $post->post_author);
+            ?>
+            <div id="publishpress-authors-user-author-wrapper">
+                <hr>
+                <label for="publishpress-authors-user-author-select"><?php
+                    echo __(
+                        'This option is showing because you do not have a WordPress user selected as an author. For some tasks, it can be helpful to have a user selected here. This user will not be visible on the front of your site.',
+                        'publishpress-authors'
+                    ); ?></label>
+                <select id="publishpress-authors-user-author-select" data-nonce="<?php
+                echo esc_attr(wp_create_nonce('authors-user-search')); ?>"
+                        class="authors-select2 authors-user-search"
+                        data-placeholder="<?php
+                        esc_attr_e('Search for an user', 'publishpress-authors'); ?>" style="width: 100%"
+                        name="fallback_author_user">
+                    <option value="<?php echo (int)$post->post_author; ?>">
+                        <?php echo is_object($userAuthor) ? $userAuthor->display_name : ''; ?>
+                    </option>
+                </select>
+            </div>
             <?php
         }
     }
@@ -249,19 +312,29 @@ class Post_Editor
             'display_name' => '',
             'avatar'       => '',
             'term'         => '',
+            'is_guest'     => 0,
         ];
+
         $args     = array_merge($defaults, $args);
         ob_start();
         ?>
-        <li>
+        <li id="publishpress-authors-author-<?php
+        echo esc_attr($args['term']); ?>" data-term-id="<?php
+        echo esc_attr($args['term']); ?>" data-is-guest="<?php
+        echo esc_attr($args['is_guest']); ?>" class="ui-sortable-handle publishpress-authors-author">
             <span class="author-remove">
                 <span class="dashicons dashicons-no-alt"></span>
             </span>
-            <?php if (!empty($args['avatar'])) : ?>
-                <?php echo $args['avatar']; ?>
-            <?php endif; ?>
-            <span class="display-name"><?php echo wp_kses_post($args['display_name']); ?></span>
-            <input type="hidden" name="authors[]" value="<?php echo esc_attr($args['term']); ?>">
+            <?php
+            if (!empty($args['avatar'])) : ?>
+                <?php
+                echo $args['avatar']; ?>
+            <?php
+            endif; ?>
+            <span class="display-name"><?php
+                echo wp_kses_post($args['display_name']); ?></span>
+            <input type="hidden" name="authors[]" value="<?php
+            echo esc_attr($args['term']); ?>">
         </li>
         <?php
         return ob_get_clean();
@@ -281,12 +354,20 @@ class Post_Editor
         ) {
             return;
         }
+
+        $firstPost = get_post($post_ids[0]);
+        if (!Utils::is_post_type_enabled($firstPost->post_type)) {
+            return;
+        }
+
         $authors = isset($_POST['authors_ids']) ? $_POST['authors_ids'] : [];
         $authors = self::remove_dirty_authors_from_authors_arr($authors);
 
+        $fallbackUserId = isset($_POST['fallback_author_user']) ? (int)$_POST['fallback_author_user'] : null;
+
         if (!empty($post_ids) && !empty($authors)) {
             foreach ($post_ids as $post_id) {
-                Utils::set_post_authors($post_id, $authors);
+                Utils::set_post_authors($post_id, $authors, true, $fallbackUserId);
             }
 
             do_action('publishpress_authors_flush_cache');
@@ -298,8 +379,8 @@ class Post_Editor
     /**
      * Handle saving of the Author meta box
      *
-     * @param int     $post_id ID for the post being saved.
-     * @param WP_Post $post    Object for the post being saved.
+     * @param int $post_id ID for the post being saved.
+     * @param WP_Post $post Object for the post being saved.
      *
      * @return mixed
      */
@@ -322,7 +403,9 @@ class Post_Editor
         $authors = isset($_POST['authors']) ? $_POST['authors'] : [];
         $authors = self::remove_dirty_authors_from_authors_arr($authors);
 
-        Utils::set_post_authors($post_id, $authors);
+        $fallbackUserId = isset($_POST['fallback_author_user']) ? (int)$_POST['fallback_author_user'] : null;
+
+        Utils::set_post_authors($post_id, $authors, true, $fallbackUserId);
 
         do_action('publishpress_authors_flush_cache');
     }
@@ -337,7 +420,8 @@ class Post_Editor
      *
      * @return array The filtered authors array
      */
-    private static function remove_dirty_authors_from_authors_arr($authors_arr) {
+    private static function remove_dirty_authors_from_authors_arr($authors_arr)
+    {
         $dirty_authors = $authors_arr;
         $authors       = [];
         foreach ($dirty_authors as $dirty_author) {
@@ -357,12 +441,13 @@ class Post_Editor
         }
         return $authors;
     }
+
     /**
      * Assign a author term when a post is initially created
      *
-     * @param int     $post_id Post ID.
-     * @param WP_Post $post    Post object.
-     * @param bool    $update  Whether this is an update.
+     * @param int $post_id Post ID.
+     * @param WP_Post $post Post object.
+     * @param bool $update Whether this is an update.
      */
     public static function action_save_post_set_initial_author($post_id, $post, $update)
     {
@@ -376,7 +461,7 @@ class Post_Editor
 
         $default_author = false;
 
-        $legacyPlugin = Factory::getLegacyPlugin();
+        $legacyPlugin           = Factory::getLegacyPlugin();
         $default_author_setting = isset($legacyPlugin->modules->multiple_authors->options->default_author_for_new_posts) ?
             $legacyPlugin->modules->multiple_authors->options->default_author_for_new_posts : '';
 
@@ -398,5 +483,39 @@ class Post_Editor
 
             do_action('publishpress_authors_flush_cache');
         }
+    }
+
+    public static function remove_core_author_field()
+    {
+        $postTypes = Content_Model::get_author_supported_post_types();
+
+        foreach ($postTypes as $postType) {
+            if (Utils::is_post_type_enabled($postType)) {
+                add_filter("rest_prepare_{$postType}", [__CLASS__, 'rest_remove_action_assign_author']);
+            }
+        }
+    }
+
+    /**
+     * Filters the post data for a REST API response removing the
+     * `wp:action-assign-author` rel from the response so the
+     * default post author control doesn't get shown on the block
+     * editor post editing screen.
+     *
+     * Based on code from humanmade/authorship.
+     *
+     * @param WP_REST_Response $response
+     *
+     * @return WP_REST_Response
+     */
+    public static function rest_remove_action_assign_author($response)
+    {
+        $links = $response->get_links();
+
+        if (isset($links['https://api.w.org/action-assign-author'])) {
+            $response->remove_link('https://api.w.org/action-assign-author');
+        }
+
+        return $response;
     }
 }
